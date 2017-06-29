@@ -1,0 +1,23 @@
+# Directories
+bin/
+obj/
+cross/
+sysroot/
+
+# Other
+*.iso
+*.cfg
+*.swp
+*.tmp
+
+# Build and Debug
+*.d
+*.o
+
+# Outputs
+*.a
+*.lib
+*.so
+*.so.*
+*.out
+*.bin
