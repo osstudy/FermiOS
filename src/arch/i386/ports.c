@@ -22,27 +22,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef KERNEL_TTY_H
-#define KERNEL_TTY_H
-
-#include <stddef.h>
 #include <arch/i386/ports.h>
 
-#define TTY_TAB_WIDTH 4
 
-enum terminal_state
+void outb(uint16_t port, uint8_t val)
 {
-	TTY_ST_NORM,
-	TTY_ST_ESC,
-	TTY_ST_COL_FG,
-	TTY_ST_COL_BG
-};
+	asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
+}
+
+void outw(uint16_t port, uint16_t val)
+{
+	asm volatile("outw %0, %1" : : "a"(val), "Nd"(port));
+}
+
+void outl(uint16_t port, uint32_t val)
+{
+	asm volatile("outl %0, %1" : : "a"(val), "Nd"(port));
+}
 
 
-void terminal_initialize();
-void terminal_clear();
-void terminal_putchar(char c);
-void terminal_write(const char* data, size_t size);
-void terminal_set_cursot(size_t col, size_t row);
+uint8_t inb(uint16_t port)
+{
+	uint8_t ret;
+	asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+}
 
-#endif // KERNEL_TTY_H
+uint16_t inw(uint16_t port)
+{
+	uint16_t ret;
+	asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+
+}
+
+uint32_t inl(uint16_t port)
+{
+	uint32_t ret;
+	asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+
+}
+
+
+void io_wait()
+{
+	outb(0x80, 0x00); // 0x80 = POST
+}

@@ -22,27 +22,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef KERNEL_TTY_H
-#define KERNEL_TTY_H
+#ifndef ARCH_I386_PORTS_H
+#define ARCH_I386_PORTS_H
 
+#include <stdint.h>
 #include <stddef.h>
-#include <arch/i386/ports.h>
-
-#define TTY_TAB_WIDTH 4
-
-enum terminal_state
-{
-	TTY_ST_NORM,
-	TTY_ST_ESC,
-	TTY_ST_COL_FG,
-	TTY_ST_COL_BG
-};
 
 
-void terminal_initialize();
-void terminal_clear();
-void terminal_putchar(char c);
-void terminal_write(const char* data, size_t size);
-void terminal_set_cursot(size_t col, size_t row);
+void outb(uint16_t, uint8_t);
+void outw(uint16_t, uint16_t);
+void outl(uint16_t, uint32_t);
 
-#endif // KERNEL_TTY_H
+uint8_t  inb(uint16_t);
+uint16_t inw(uint16_t);
+uint32_t inl(uint16_t);
+
+void io_wait();
+
+#endif // ARCH_I386_PORTS_H

@@ -147,7 +147,6 @@ void terminal_norm_handler(char c)
 		terminal_row++;
 	}
 
-	// TODO: last row is always empty
 	if(terminal_row == VGA_HEIGHT)
 	{
 		memcpy(terminal_buffer, terminal_buffer + VGA_WIDTH, (VGA_HEIGHT)
@@ -155,6 +154,8 @@ void terminal_norm_handler(char c)
 
 		terminal_row--;
 	}
+
+	terminal_set_cursot(terminal_column, terminal_row);
 }
 
 void terminal_putchar(char c)
@@ -207,6 +208,7 @@ void terminal_putchar(char c)
 			{
 				int col = atoi(tty_esc_buffer);
 				terminal_color = (terminal_color & 0x0F) | (col & 0x0F) << 4;
+				terminal_color &= 0x7F; //prevent blink
 
 				tty_state = TTY_ST_NORM;
 			}
@@ -233,3 +235,11 @@ void terminal_write(const char* data, size_t size)
 		terminal_putchar(data[i]);
 }
 
+void terminal_set_cursot(size_t col, size_t row)
+{
+	uint16_t pos = row * VGA_WIDTH + col;
+	outb(0x3D4, 0x0F);
+	outb(0x3D5, (uint8_t)(pos & 0xFF));
+	outb(0x3D4, 0x0E);
+	outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}

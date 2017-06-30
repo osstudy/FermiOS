@@ -33,7 +33,7 @@
 
 #include <kernel/tty.h>
 #include <arch/i386/gdt.h>
-
+#include <arch/i386/ports.h>
 
 void dump_font();
 void printf_tests();
@@ -41,6 +41,7 @@ void vga_color_test();
 void dump_registers();
 void print_mem(void* from, size_t size);
 void cycle_delay(size_t cycles);
+void run_tests();
 extern void gdt_set(void* gdt, size_t gdt_size);
 extern void gdt_activate();
 
@@ -108,6 +109,19 @@ void kernel_main(size_t mem_size)
 
 	cycle_delay(0xFFFFFFFF);
 
+	io_wait();
+
+	if(true)
+		run_tests();
+
+	printf("\r\n");
+	printf("Nothing to do, aborting...\r\n");
+
+	abort();
+}
+
+void run_tests()
+{
 	printf("\r\n");
 	printf("Doing some tests: \r\n");
 	cycle_delay(0x0F000000);
@@ -124,11 +138,6 @@ void kernel_main(size_t mem_size)
 	cycle_delay(0xFFF00000);
 	printf("\r\n");
 	print_mem((void*)0x100000, 16 * 20);
-
-	printf("\r\n");
-	printf("Nothing to do, aborting...\r\n");
-
-	abort();
 }
 
 void vga_color_test()
@@ -250,28 +259,28 @@ void dump_registers() // FIXME: x86 arch specific!
 	printf("Register dump: \r\n");
 
 	printf("EAX: 0x%p ", eax);
-	asm("mov %cs, %eax");
+	asm volatile("mov %cs, %eax");
 	printf("CS: 0x%p\r\n", eax);
 
-	asm("mov %ds, %eax");
+	asm volatile("mov %ds, %eax");
 	printf("EBX: 0x%p DS: 0x%p\r\n", ebx, eax);
 
-	asm("mov %es, %eax");
+	asm volatile("mov %es, %eax");
 	printf("ECX: 0x%p ES: 0x%p\r\n", ecx, eax);
 
-	asm("mov %ss, %eax");
+	asm volatile("mov %ss, %eax");
 	printf("EDX: 0x%p SS: 0x%p\r\n", edx, eax);
 
-	asm("mov %gs, %eax");
+	asm volatile("mov %gs, %eax");
 	printf("ESI: 0x%p GS: 0x%p\r\n", esi, eax);
 
-	asm("mov %fs, %eax");
+	asm volatile("mov %fs, %eax");
 	printf("EDI: 0x%p FS: 0x%p\r\n", edi, eax);
 
 
-	asm("mov %cr0, %eax");
-	asm("mov %ebp, %ebx");
-	asm("mov %esp, %ecx");
+	asm volatile("mov %cr0, %eax");
+	asm volatile("mov %ebp, %ebx");
+	asm volatile("mov %esp, %ecx");
 	printf("CR0: 0x%p EBP: 0x%p ESP: 0x%p\r\n", eax, ebx, ecx);
 }
 

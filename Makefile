@@ -25,12 +25,13 @@ CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG) \
 	-D_KERNEL_VERSION=\"$(VER)\"
 LFLAGS       := -nostdlib -lgcc -T $(SRC_DIR)/arch/$(ARCH)/linker.ld -L$(BIN_DIR)
 INCFLAGS     := -I$(abspath $(INC_DIR)) -I$(abspath $(INC_DIR))/libc
-QFLAGS       := -enable-kvm -monitor stdio -m 1024M -cpu core2duo -smp 2 -display gtk
+QFLAGS       := -enable-kvm -monitor stdio -m 1024M -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
 	$(SRC_DIR)/arch/$(ARCH)/tty.c \
-	$(SRC_DIR)/arch/$(ARCH)/gdt.c
+	$(SRC_DIR)/arch/$(ARCH)/gdt.c \
+	$(SRC_DIR)/arch/$(ARCH)/ports.c
 KRN_OBJ      := $(addprefix $(OBJ_DIR)/, $(KRN_ASM:%.s=%.o)) \
 	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))             \
 	$(OBJ_DIR)/crtbegin.o                                    \
