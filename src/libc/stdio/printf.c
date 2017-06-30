@@ -22,10 +22,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
 #include <stddef.h>
 
@@ -41,6 +42,41 @@ static bool print(const char* data, size_t length)
 	}
 
 	return true;
+}
+
+static void itoa(int num, char* buf, size_t buf_size, size_t base, bool sign,
+		const char* digit)
+{
+	if(num < 0 && sign)
+	{
+		*buf = '-';
+		buf++;
+
+		num *= -1;
+	}
+
+	int shift = num;
+	size_t i = 0;
+
+	do
+	{
+		buf++;
+		i++;
+		shift /= base;
+
+		if(i >= buf_size)
+			abort(); // FIXME: proper errors
+	}
+	while(shift);
+	*buf = '\0';
+
+	do
+	{
+		buf--;
+		*buf = digit[num % base];
+		num /= base;
+	}
+	while(num);
 }
 
 int printf(const char* restrict format, ...)
@@ -113,6 +149,55 @@ int printf(const char* restrict format, ...)
 
 			written += len;
 		}
+		else if(*format == 'd' || *format == 'i' ||
+				*format == 'u' || *format == 'o' ||
+				*format == 'x' || *format == 'X' ||
+				*format == 'p')
+		{
+			char f = *format;
+			format++;
+			int num = va_arg(parameters, int);
+			char buf[32];
+
+			switch(f)
+			{
+				case 'd':
+				case 'i':
+					itoa(num, buf, 32, 10, true,  "0123456789"      );
+					break;
+
+				case 'u':
+					itoa(num, buf, 32, 10, false, "0123456789"      );
+					break;
+
+				case 'o':
+					itoa(num, buf, 32,  8, false, "01234567"        );
+					break;
+
+				case 'x':
+					itoa(num, buf, 32, 16, false, "0123456789abcdef");
+					break;
+
+				default:
+				case 'p':
+				case 'X':
+					itoa(num, buf, 32, 16, false, "0123456789ABCDEF");
+					break;
+			}
+			size_t len = strlen(buf);
+
+			if (maxrem < len)
+			{
+				// TODO: Set errno to EOVERFLOW.
+				return -1;
+			}
+
+			if (!print(buf, len))
+				return -1;
+
+			written += len;
+		}
+
 		else
 		{
 			format = format_begun_at;

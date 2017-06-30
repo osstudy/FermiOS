@@ -32,6 +32,10 @@
 
 #include <kernel/tty.h>
 
+
+void dump_font();
+void printf_tests();
+
 void kernel_main()
 {
 	terminal_initialize();
@@ -40,8 +44,61 @@ void kernel_main()
 	printf(_KERNEL_VERSION);
 	printf(" kernel loaded\r\n");
 	printf("\r\n");
+
+
+	printf("\r\n");
 	printf("Nothing to do, aborting...\r\n");
 
 	abort();
+}
+
+void printf_tests()
+{
+	int val = 1337;
+	int* ptr = &val;
+
+	char c = 2;
+	char* c_ptr = &c;
+
+	printf("printf() tests:\r\n");
+	printf("Test  c: %c\r\n",  'A');
+	printf("Test  c: %c\r\n",  '#');
+	printf("Test  c: %c\r\n",  2);
+	printf("Test  c: %c\r\n",  '`');
+	printf("Test  c: %c\r\n",  'j');
+	printf("Test  d: %d\r\n",  val);
+	printf("Test -d: %d\r\n", -val);
+	printf("Test  i: %i\r\n",  val);
+	printf("Test -i: %i\r\n", -val);
+	printf("Test  u: %u\r\n",  val);
+	printf("Test -u: %u\r\n", -val);
+	printf("Test  o: %o\r\n",  val);
+	printf("Test -o: %o\r\n", -val);
+	printf("Test  x: %x\r\n",  val);
+	printf("Test -x: %x\r\n", -val);
+	printf("Test  X: %X\r\n",  val);
+	printf("Test -X: %X\r\n", -val);
+	printf("Test  p: %p\r\n",  ptr);
+	printf("Test  s: %s\r\n",  "Hello, kernel World!");
+	printf("Test  complex: \"%s0x%X%s; '%c' is at %p\"\r\n",
+			"Ten is ", 10, " in hex",
+			c, c_ptr);
+}
+
+void dump_font()
+{
+	printf("Dumping font:\r\n\x1b[7m");
+	for(uint8_t i = 0; i < 255; i++)
+	{
+		if(i == '\n' || i == '\t' || i == '\r' || i == '\x1b')
+			printf(" ");
+		else
+			printf("%c", i);
+
+		if(i % 32 == 0 && i != 0)
+			printf("\r\n");
+	}
+
+	printf("\r\n\x1b[15m");
 }
 

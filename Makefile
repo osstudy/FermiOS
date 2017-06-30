@@ -25,7 +25,7 @@ CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG) \
 	-D_KERNEL_VERSION=\"$(VER)\"
 LFLAGS       := -nostdlib -lgcc -T $(SRC_DIR)/arch/$(ARCH)/linker.ld -L$(BIN_DIR)
 INCFLAGS     := -I$(abspath $(INC_DIR)) -I$(abspath $(INC_DIR))/libc
-QFLAGS       := -enable-kvm -monitor stdio -m 2048 -smp 2
+QFLAGS       := -enable-kvm -monitor stdio -m 2048 -smp 2 -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
@@ -69,10 +69,10 @@ brun: build run
 build: $(TARGET)-$(VER)-$(ARCH).iso
 
 run:
-	qemu-system-i386 -kernel $(BIN_DIR)/$(TARGET).bin
+	qemu-system-i386 $(QFLAGS) -kernel $(BIN_DIR)/$(TARGET).bin
 
 run-iso:
-	qemu-system-i386 -cdrom $(TARGET)-$(VER)-$(ARCH).iso
+	qemu-system-i386 $(QFLAGS) -cdrom $(TARGET)-$(VER)-$(ARCH).iso
 
 $(TARGET)-$(VER)-$(ARCH).iso: $(BIN_DIR)/$(TARGET).bin
 	mkdir -p $(SYSROOT_DIR)/boot/grub
@@ -107,4 +107,4 @@ clean:
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(OBJ_DIR)/*
 	rm -rf $(SYSROOT_DIR)
-	rm -f  $(TARGET)-$(VER)-$(ARCH).iso
+	rm -f  $(TARGET)-*.iso
