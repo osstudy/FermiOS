@@ -1,7 +1,7 @@
 TARGET       := fermios
 
 VER_MAJ      := 1
-VER_MIN      := 0
+VER_MIN      := 1
 VER_FIX      := 0
 VER_SUF      := a
 VER          := $(VER_MAJ).$(VER_MIN).$(VER_FIX)$(VER_SUF)
@@ -21,7 +21,8 @@ AR           := i686-elf-ar
 
 AFLAGS       := -f elf32
 CFLAGS_DEBUG := -g -D _DEBUG
-CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG)
+CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG) \
+	-D_KERNEL_VERSION=\"$(VER)\"
 LFLAGS       := -nostdlib -lgcc -T $(SRC_DIR)/arch/$(ARCH)/linker.ld -L$(BIN_DIR)
 INCFLAGS     := -I$(abspath $(INC_DIR)) -I$(abspath $(INC_DIR))/libc
 QFLAGS       := -enable-kvm -monitor stdio -m 2048 -smp 2
@@ -55,9 +56,13 @@ export PATH  := $(CROSS_DIR)/bin:$(PATH)
 
 all: rebuild
 
+rbri : rebuild run-iso
+
 rbr: rebuild run
 
 rebuild: clean build
+
+bruni: build run-iso
 
 brun: build run
 

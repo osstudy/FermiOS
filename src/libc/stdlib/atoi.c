@@ -22,21 +22,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
-#include <sys/cdefs.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
+int atoi(const char* str)
+{
+	int num = 0;
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
-
-#ifdef __cplusplus
+	while(*str)
+	{
+		num = num * 10 + (*str) - '0';
+		str++;
 	}
-#endif
 
-#endif // LIBC_STDLIB_H
+	return num;
+}
+

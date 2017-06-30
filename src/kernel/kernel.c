@@ -22,21 +22,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include <kernel/tty.h>
 
 void kernel_main()
 {
 	terminal_initialize();
-	printf("FermiOS kernel loaded.\n");
+	printf("\x1b[10m[ OK ]\x1b[15;0m VGA TTY initialized\r\n");
+	printf("\x1b[10m[ OK ]\x1b[13m FermiOS \x1b[15;0m");
+	printf(_KERNEL_VERSION);
+	printf(" kernel loaded\r\n");
+	printf("\r\n");
+	printf("Nothing to do, aborting...\r\n");
 
-	while(true)
-	{
-		asm("nop");
-	}
+	abort();
 }
 

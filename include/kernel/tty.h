@@ -27,6 +27,16 @@
 
 #include <stddef.h>
 
+#define TTY_TAB_WIDTH 4
+
+enum terminal_state
+{
+	TTY_ST_NORM,
+	TTY_ST_ESC,
+	TTY_ST_COL_FG,
+	TTY_ST_COL_BG
+};
+
 
 void terminal_initialize();
 void terminal_clear();
