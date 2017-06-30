@@ -56,6 +56,8 @@ void terminal_initialize()
 	terminal_color = terminal_color_default;
 	terminal_buffer = VGA_MEMORY;
 
+	terminal_enable_cursor(true);
+	terminal_set_cursot(0, 0);
 	terminal_clear();
 }
 
@@ -237,9 +239,20 @@ void terminal_write(const char* data, size_t size)
 
 void terminal_set_cursot(size_t col, size_t row)
 {
+	// FIXME: don't hardcode the ports. get em from BIOS.
+
 	uint16_t pos = row * VGA_WIDTH + col;
 	outb(0x3D4, 0x0F);
 	outb(0x3D5, (uint8_t)(pos & 0xFF));
 	outb(0x3D4, 0x0E);
 	outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+void terminal_enable_cursor(bool enable)
+{
+	outb(0x3D4, 0x0A);
+	if(enable)
+		outb(0x3D5, 0x0D);
+	else
+		outb(0x3D5, 0x3F);
 }

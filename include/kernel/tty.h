@@ -26,6 +26,7 @@
 #define KERNEL_TTY_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <arch/i386/ports.h>
 
 #define TTY_TAB_WIDTH 4
@@ -44,5 +45,6 @@ void terminal_clear();
 void terminal_putchar(char c);
 void terminal_write(const char* data, size_t size);
 void terminal_set_cursot(size_t col, size_t row);
+void terminal_enable_cursor(bool enable);
 
 #endif // KERNEL_TTY_H
