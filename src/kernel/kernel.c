@@ -32,6 +32,7 @@
 #include <limits.h>
 
 #include <kernel/tty.h>
+#include <arch/i386/gdt.h>
 
 
 void dump_font();
@@ -39,22 +40,77 @@ void printf_tests();
 void vga_color_test();
 void dump_registers();
 void print_mem(void* from, size_t size);
-
 void cycle_delay(size_t cycles);
+extern void gdt_set(void* gdt, size_t gdt_size);
+extern void gdt_activate();
+
+// TODO: refactor GDT out of kernel main
+
+struct tss
+{
+	uint16_t link;			uint16_t link_r;
+	uint32_t esp0;
+	uint16_t ss0;			uint16_t ss0_r;
+	uint32_t esp1;
+	uint16_t ss1;			uint16_t ss1_r;
+	uint32_t esp2;
+	uint16_t ss2;			uint16_t ss2_r;
+	uint32_t cr3;
+	uint32_t eip;
+	uint32_t eflags;
+	uint32_t eax;
+	uint32_t ecx;
+	uint32_t edx;
+	uint32_t ebx;
+	uint32_t esp;
+	uint32_t ebp;
+	uint32_t esi;
+	uint32_t edi;
+	uint16_t es;			uint16_t es_r;
+	uint16_t cs;			uint16_t cs_r;
+	uint16_t ss;			uint16_t ss_r;
+	uint16_t ds;			uint16_t ds_r;
+	uint16_t fs;			uint16_t fs_r;
+	uint16_t gs;			uint16_t gs_r;
+	uint16_t ldtr;			uint16_t ldtr_r;
+	uint16_t iopb_off_r;	uint16_t iopb_off;
+
+} __attribute__((packed));
 
 
-void kernel_main()
+
+uint64_t gdt[6];
+struct tss my_tss;
+
+
+void kernel_main(size_t mem_size)
 {
 	terminal_initialize();
 	printf("\x1b[10m[ OK ]\x1b[15;0m VGA TTY initialized\r\n");
+
+	gdt[0] = gdt_create_descriptor(0 ,0 ,0);						// NULL
+	gdt[1] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL0));	// CS K
+	gdt[2] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL0));	// DS K
+	gdt[3] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL3));	// CS U
+	gdt[4] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL3));	// DS U
+	gdt[5] = gdt_create_descriptor(&my_tss, sizeof(my_tss), 0x89);	//  TSS
+
+	gdt_set(gdt, sizeof(gdt));
+	gdt_activate();
+	printf("\x1b[10m[ OK ]\x1b[15;0m GDT Activated\r\n");
+
 	printf("\x1b[10m[ OK ]\x1b[13m FermiOS \x1b[15;0m");
 	printf(_KERNEL_VERSION);
 	printf(" kernel loaded\r\n");
+	printf("\x1b[9;0m[INFO]\x1b[15;0m Available memory: %u MB\r\n",
+			mem_size / 1024);
 	printf("\r\n");
 
-	printf("Doing some tests: \r\n\n");
-	cycle_delay(0x0F000000);
+	cycle_delay(0xFFFFFFFF);
+
 	printf("\r\n");
+	printf("Doing some tests: \r\n");
+	cycle_delay(0x0F000000);
 	dump_font();
 	cycle_delay(0xFFF00000);
 	printf("\r\n");
@@ -106,7 +162,10 @@ void print_mem(void* from, size_t size)
 			if(j <= rest)
 			{
 				uint8_t d = *(uint8_t*)(from + j);
-				printf("%X ", d);
+				if(d)
+					printf("%X ", d);
+				else
+					printf("\x1b[7;0m%X\x1b[15;0m ", d);
 			}
 			else
 				printf("   ");
@@ -181,12 +240,12 @@ void dump_font()
 
 void dump_registers() // FIXME: x86 arch specific!
 {
-	register int eax asm ("eax");
-	register int ebx asm ("ebx");
-	register int ecx asm ("ecx");
-	register int edx asm ("edx");
-	register int esi asm ("esi");
-	register int edi asm ("edi");
+	register int eax asm("eax");
+	register int ebx asm("ebx");
+	register int ecx asm("ecx");
+	register int edx asm("edx");
+	register int esi asm("esi");
+	register int edi asm("edi");
 
 	printf("Register dump: \r\n");
 	printf("EAX: 0x%X\r\n", eax);
@@ -195,6 +254,11 @@ void dump_registers() // FIXME: x86 arch specific!
 	printf("EDX: 0x%X\r\n", edx);
 	printf("ESI: 0x%X\r\n", esi);
 	printf("EDI: 0x%X\r\n", edi);
+
+	asm("mov %cr0, %eax");
+	printf("CR0: 0x%X\r\n", eax);
+
+
 }
 
 void cycle_delay(size_t cycles)

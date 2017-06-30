@@ -42,11 +42,52 @@ stack_bottom:
 resb 16384 ; 16 KiB
 stack_top:
 
-; Kernel entry.
+
+section .data
+gdtr dw 0 ; limit
+	dd 0 ; base
+
 section .text
+global gdt_set:function
+gdt_set:
+	mov eax, [esp + 4]
+	mov [gdtr + 2], eax
+	mov ax, [esp + 8]
+	mov [gdtr], ax
+	lgdt [gdtr]
+	ret
+
+global gdt_activate:function
+gdt_activate:
+	jmp 0x08:.reload_CS
+.reload_CS
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	ret
+
 global _start:function (_start.end - _start)
 _start:
 	mov esp, stack_top
+
+	; check multiboot
+	mov ecx, 0x2BADB002
+	cmp ecx, eax
+	jne .hang
+
+	; calculate mem from multiboot info
+	xor eax, eax
+	add ebx, 0x4
+	add eax, [ebx]
+	add ebx, 0x4
+	add eax, [ebx]
+	push eax
+
+	; disable interrupts till we have GDT and IDT
+	cli
 
 	; Call global ctor's.
 	extern _init

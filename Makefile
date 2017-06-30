@@ -29,7 +29,8 @@ QFLAGS       := -enable-kvm -monitor stdio -m 1024M -smp 2 -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
-	$(SRC_DIR)/arch/$(ARCH)/tty.c
+	$(SRC_DIR)/arch/$(ARCH)/tty.c \
+	$(SRC_DIR)/arch/$(ARCH)/gdt.c
 KRN_OBJ      := $(addprefix $(OBJ_DIR)/, $(KRN_ASM:%.s=%.o)) \
 	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))             \
 	$(OBJ_DIR)/crtbegin.o                                    \
