@@ -35,6 +35,7 @@
 
 void dump_font();
 void printf_tests();
+void vga_color_test();
 
 void kernel_main()
 {
@@ -45,11 +46,23 @@ void kernel_main()
 	printf(" kernel loaded\r\n");
 	printf("\r\n");
 
-
 	printf("\r\n");
 	printf("Nothing to do, aborting...\r\n");
 
 	abort();
+}
+
+void vga_color_test()
+{
+	printf("Text Mode VGA colors test: \r\n");
+	for(int i = 0; i < 16; i++)
+	{
+		for(int j = 0; j < 16; j++)
+			printf("\x1b[%d;%dm%c%c%c", i, j, 176, 177, 178);
+		printf("\r\n");
+	}
+
+	printf("\x1b[0m\r\n");
 }
 
 void printf_tests()

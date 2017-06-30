@@ -206,7 +206,7 @@ void terminal_putchar(char c)
 			if(c == 'm')
 			{
 				int col = atoi(tty_esc_buffer);
-				terminal_color |= (col & 0x0F) << 4;
+				terminal_color = (terminal_color & 0x0F) | (col & 0x0F) << 4;
 
 				tty_state = TTY_ST_NORM;
 			}
