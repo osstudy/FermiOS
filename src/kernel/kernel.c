@@ -93,7 +93,7 @@ void kernel_main(size_t mem_size)
 	gdt[2] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL0));	// DS K
 	gdt[3] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL3));	// CS U
 	gdt[4] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL3));	// DS U
-	gdt[5] = gdt_create_descriptor(&my_tss, sizeof(my_tss), 0x89);	//  TSS
+	gdt[5] = gdt_create_descriptor((uint32_t)&my_tss, sizeof(my_tss), 0x89);	//  TSS
 
 	gdt_set(gdt, sizeof(gdt));
 	gdt_activate();
@@ -248,17 +248,31 @@ void dump_registers() // FIXME: x86 arch specific!
 	register int edi asm("edi");
 
 	printf("Register dump: \r\n");
-	printf("EAX: 0x%X\r\n", eax);
-	printf("EBX: 0x%X\r\n", ebx);
-	printf("ECX: 0x%X\r\n", ecx);
-	printf("EDX: 0x%X\r\n", edx);
-	printf("ESI: 0x%X\r\n", esi);
-	printf("EDI: 0x%X\r\n", edi);
+
+	printf("EAX: 0x%p ", eax);
+	asm("mov %cs, %eax");
+	printf("CS: 0x%p\r\n", eax);
+
+	asm("mov %ds, %eax");
+	printf("EBX: 0x%p DS: 0x%p\r\n", ebx, eax);
+
+	asm("mov %es, %eax");
+	printf("ECX: 0x%p ES: 0x%p\r\n", ecx, eax);
+
+	asm("mov %ss, %eax");
+	printf("EDX: 0x%p SS: 0x%p\r\n", edx, eax);
+
+	asm("mov %gs, %eax");
+	printf("ESI: 0x%p GS: 0x%p\r\n", esi, eax);
+
+	asm("mov %fs, %eax");
+	printf("EDI: 0x%p FS: 0x%p\r\n", edi, eax);
+
 
 	asm("mov %cr0, %eax");
-	printf("CR0: 0x%X\r\n", eax);
-
-
+	asm("mov %ebp, %ebx");
+	asm("mov %esp, %ecx");
+	printf("CR0: 0x%p EBP: 0x%p ESP: 0x%p\r\n", eax, ebx, ecx);
 }
 
 void cycle_delay(size_t cycles)

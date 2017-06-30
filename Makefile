@@ -25,7 +25,7 @@ CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG) \
 	-D_KERNEL_VERSION=\"$(VER)\"
 LFLAGS       := -nostdlib -lgcc -T $(SRC_DIR)/arch/$(ARCH)/linker.ld -L$(BIN_DIR)
 INCFLAGS     := -I$(abspath $(INC_DIR)) -I$(abspath $(INC_DIR))/libc
-QFLAGS       := -enable-kvm -monitor stdio -m 1024M -smp 2 -display gtk
+QFLAGS       := -enable-kvm -monitor stdio -m 1024M -cpu core2duo -smp 2 -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
