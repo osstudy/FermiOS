@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <limits.h>
 
 #include <kernel/tty.h>
 
@@ -36,6 +37,11 @@
 void dump_font();
 void printf_tests();
 void vga_color_test();
+void dump_registers();
+void print_mem(void* from, size_t size);
+
+void cycle_delay(size_t cycles);
+
 
 void kernel_main()
 {
@@ -45,6 +51,23 @@ void kernel_main()
 	printf(_KERNEL_VERSION);
 	printf(" kernel loaded\r\n");
 	printf("\r\n");
+
+	printf("Doing some tests: \r\n\n");
+	cycle_delay(0x0F000000);
+	printf("\r\n");
+	dump_font();
+	cycle_delay(0xFFF00000);
+	printf("\r\n");
+	printf_tests();
+	cycle_delay(0xFFF00000);
+	printf("\r\n");
+	vga_color_test();
+	cycle_delay(0xFFF00000);
+	printf("\r\n");
+	dump_registers();
+	cycle_delay(0xFFF00000);
+	printf("\r\n");
+	print_mem((void*)0x100000, 16 * 20);
 
 	printf("\r\n");
 	printf("Nothing to do, aborting...\r\n");
@@ -62,7 +85,48 @@ void vga_color_test()
 		printf("\r\n");
 	}
 
-	printf("\x1b[0m\r\n");
+	printf("\x1b[15;0m\r\n");
+}
+
+void print_mem(void* from, size_t size)
+{
+	size_t cols = 16;
+	size_t rest = size;
+	printf("Printing mem from 0x%p to 0x%p: \r\n", from, from + size);
+
+	for(size_t i = 0; i < size; i += cols)
+	{
+		printf("\x1b[11;0m0x%p\x1b[15;0m: ", from);
+
+		for(size_t j = 0; j < cols; j++)
+		{
+			if(j % (cols / 2) == 0 && j != 0)
+				printf(" ");
+
+			if(j <= rest)
+			{
+				uint8_t d = *(uint8_t*)(from + j);
+				printf("%X ", d);
+			}
+			else
+				printf("   ");
+		}
+
+		printf("|");
+
+		for(size_t j = 0; j < (cols >= rest ? rest : cols); j++)
+		{
+			char c = *(char*)(from + j);
+			if(' ' <= c && c <= '~')
+				printf("%c", c);
+			else
+				printf("\x1b[0m.\x1b[15;0m");
+		}
+
+		printf("|\r\n");
+		from += cols;
+		rest -= cols;
+	}
 }
 
 void printf_tests()
@@ -100,7 +164,7 @@ void printf_tests()
 
 void dump_font()
 {
-	printf("Dumping font:\r\n\x1b[7m");
+	printf("Dumping font:\r\n\x1b[15;0m");
 	for(uint8_t i = 0; i < 255; i++)
 	{
 		if(i == '\n' || i == '\t' || i == '\r' || i == '\x1b')
@@ -112,6 +176,29 @@ void dump_font()
 			printf("\r\n");
 	}
 
-	printf("\r\n\x1b[15m");
+	printf("\r\n\x1b[15;0m");
 }
 
+void dump_registers() // FIXME: x86 arch specific!
+{
+	register int eax asm ("eax");
+	register int ebx asm ("ebx");
+	register int ecx asm ("ecx");
+	register int edx asm ("edx");
+	register int esi asm ("esi");
+	register int edi asm ("edi");
+
+	printf("Register dump: \r\n");
+	printf("EAX: 0x%X\r\n", eax);
+	printf("EBX: 0x%X\r\n", ebx);
+	printf("ECX: 0x%X\r\n", ecx);
+	printf("EDX: 0x%X\r\n", edx);
+	printf("ESI: 0x%X\r\n", esi);
+	printf("EDI: 0x%X\r\n", edi);
+}
+
+void cycle_delay(size_t cycles)
+{
+	for(; cycles > 0; cycles--)
+		asm("nop"); // FIXME: hey that's platform specific!
+}

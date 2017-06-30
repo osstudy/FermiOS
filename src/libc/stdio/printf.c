@@ -45,8 +45,10 @@ static bool print(const char* data, size_t length)
 }
 
 static void itoa(int num, char* buf, size_t buf_size, size_t base, bool sign,
-		const char* digit)
+		const char* digit, int padding)
 {
+	memset(buf, '0',buf_size);
+
 	if(num < 0 && sign)
 	{
 		*buf = '-';
@@ -68,6 +70,12 @@ static void itoa(int num, char* buf, size_t buf_size, size_t base, bool sign,
 			abort(); // FIXME: proper errors
 	}
 	while(shift);
+
+	int x = padding - (int)i;
+	if(x < 0)
+		x = 0;
+	buf += x;
+
 	*buf = '\0';
 
 	do
@@ -163,25 +171,28 @@ int printf(const char* restrict format, ...)
 			{
 				case 'd':
 				case 'i':
-					itoa(num, buf, 32, 10, true,  "0123456789"      );
+					itoa(num, buf, 32, 10, true,  "0123456789"      , 0);
 					break;
 
 				case 'u':
-					itoa(num, buf, 32, 10, false, "0123456789"      );
+					itoa(num, buf, 32, 10, false, "0123456789"      , 0);
 					break;
 
 				case 'o':
-					itoa(num, buf, 32,  8, false, "01234567"        );
+					itoa(num, buf, 32,  8, false, "01234567"        , 0);
 					break;
 
 				case 'x':
-					itoa(num, buf, 32, 16, false, "0123456789abcdef");
+					itoa(num, buf, 32, 16, false, "0123456789abcdef", 0);
 					break;
 
 				default:
 				case 'p':
+					itoa(num, buf, 32, 16, false, "0123456789ABCDEF", 8);
+					break;
+
 				case 'X':
-					itoa(num, buf, 32, 16, false, "0123456789ABCDEF");
+					itoa(num, buf, 32, 16, false, "0123456789ABCDEF", 2);
 					break;
 			}
 			size_t len = strlen(buf);
