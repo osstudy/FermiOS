@@ -68,14 +68,45 @@ void handle_interrupt(struct interrupt_cpu_state* state)
 	// handle exceptions
 	if(id < 32)
 	{
-		printf("EXCEPTION %u: '%s' OCCURRED!\r\n", id, exception_names[id]);
-		printf("ERR_CODE: %u\r\n");
+		printf("\x1b[12mEXCEPTION %u: '%s' OCCURRED!\r\n", id, exception_names[id]);
+		printf("ERR_CODE: %u\r\n\x1b[15;0m");
+
+		printf("\r\n");
+		print_cpu_state(state);
+
 		abort();
 	}
 
 	printf("INT: %u\r\n", id);
 }
 
+void print_cpu_state(struct interrupt_cpu_state* state)
+{
+	printf("INTERRUPT CPU STATE:\r\n\r\n");
+
+	printf("INSTRUCTION POINTER AND EFLAGS:\r\n");
+	printf("EIP:    0x%p\r\n", state->eip);
+	printf("EFLAGS: 0x%p\r\n", state->eflags);
+
+	printf("\r\n");
+	printf("GENERAL PURPOSE REGISTERS:\r\n");
+	printf("EAX: 0x%p\tEBX: 0x%p\r\n", state->eax, state->ebx);
+	printf("ECX: 0x%p\tEDX: 0x%p\r\n", state->ecx, state->edx);
+
+	printf("\r\n");
+	printf("INDEX REGISTERS:\r\n");
+	printf("EDI: 0x%p\tESI: 0x%p\r\n", state->edi, state->esi);
+
+	printf("\r\n");
+	printf("STACK REGISTERS:\r\n");
+	printf("EBP: 0x%p\tESP: 0x%p\r\n", state->ebp, state->esp);
+
+	printf("\r\n");
+	printf("SEGMENT REGISTERS:\r\n");
+	printf("CS:  0x%p\tDS:  0x%p\r\n", state->cs, state->ds);
+	printf("ES:  0x%p\tFS:  0x%p\r\n", state->es, state->fs);
+	printf("GS:  0x%p\tSS:  0x%p\r\n", state->gs, state->ss);
+}
 
 
 

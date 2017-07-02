@@ -37,12 +37,13 @@ struct interrupt_cpu_state
 {
 	uint32_t gs, fs, es, ds;                  // pushed manually
 	uint32_t edi, esi, ebp, esp,              // pusha
-			ebx, edx, ecs, eax;
+			ebx, edx, ecx, eax;
 	uint32_t isr_id, err_code;                // pushed by isr stub
 	uint32_t eip, cs, eflags, userresp, ss;   // pushed by hardware
 } __attribute__((packed));
 
 void handle_interrupt(struct interrupt_cpu_state*);
+void print_cpu_state(struct interrupt_cpu_state*);
 
 extern void isr_ignore();
 extern void isr0();

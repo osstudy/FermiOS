@@ -109,7 +109,6 @@ void kernel_main(size_t mem_size)
 			mem_size / 1024);
 	printf("\r\n");
 
-
 	cycle_delay(0xFFFFFFFF);
 	if(false)
 		run_tests();
