@@ -35,6 +35,7 @@
 #include <arch/i386/gdt.h>
 #include <arch/i386/ports.h>
 #include <arch/i386/idt.h>
+#include <arch/i386/pic.h>
 
 void dump_font();
 void printf_tests();
@@ -100,7 +101,16 @@ void kernel_main(size_t mem_size)
 	printf("\x1b[10m[ OK ]\x1b[15;0m GDT Activated\r\n");
 
 	idt_init();
-	printf("\x1b[10m[ OK ]\x1b[15;0m IDT Activated\r\n");
+	printf("\x1b[10m[ OK ]\x1b[15;0m IDT Initialized\r\n");
+	pic_remap_irqs(IRQ_OFFSET, IRQ_OFFSET + 8);
+	pic_load_irqs();
+	printf("\x1b[10m[ OK ]\x1b[15;0m PIC Initialized\r\n");
+
+	idt_set();
+	outb(0x21,0xfc); // Enable keyboard and PIT
+	outb(0xa1,0xff);
+	asm volatile("sti");
+	printf("\x1b[10m[ OK ]\x1b[15;0m IDT Loaded; Interrupts enabled\r\n");
 
 	printf("\x1b[10m[ OK ]\x1b[13m FermiOS \x1b[15;0m");
 	printf(_KERNEL_VERSION);
@@ -109,14 +119,12 @@ void kernel_main(size_t mem_size)
 			mem_size / 1024);
 	printf("\r\n");
 
-	cycle_delay(0xFFFFFFFF);
 	if(false)
 		run_tests();
 
-	printf("\r\n");
-	printf("Nothing to do, aborting...\r\n");
-
-	abort();
+	// wait loop
+	while(true)
+		asm volatile("hlt");
 }
 
 void run_tests()

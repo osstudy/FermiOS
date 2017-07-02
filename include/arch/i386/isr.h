@@ -29,23 +29,26 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <arch/i386/pic.h>
 
+#define IRQ_OFFSET 32
 
 typedef void(*isr_func)(void);
 
 struct interrupt_cpu_state
 {
-	uint32_t gs, fs, es, ds;                  // pushed manually
-	uint32_t edi, esi, ebp, esp,              // pusha
+	uint32_t gs, fs, es, ds;                       // pushed manually
+	uint32_t edi, esi, ebp, esp,                   // pusha
 			ebx, edx, ecx, eax;
-	uint32_t isr_id, err_code;                // pushed by isr stub
-	uint32_t eip, cs, eflags, userresp, ss;   // pushed by hardware
+	uint32_t isr_id, err_code;                     // pushed by isr stub
+	uint32_t eip, cs, eflags, user_esp, user_ss;   // pushed by hardware
+	// the above line is possibly
 } __attribute__((packed));
+
 
 void handle_interrupt(struct interrupt_cpu_state*);
 void print_cpu_state(struct interrupt_cpu_state*);
 
-extern void isr_ignore();
 extern void isr0();
 extern void isr1();
 extern void isr2();

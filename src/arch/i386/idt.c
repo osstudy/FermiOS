@@ -41,14 +41,11 @@ void idt_init()
 	// clean the IDT
 	memset(&idt, 0, sizeof(struct idt_entry) * IDT_SIZE);
 
-	// load ISRs and IRQs into IDT
+	// load ISRs into IDT
 	size_t i = 0;
 	for(; i < sizeof(isrs) / sizeof(isr_func); i++)
 		idt_set_gate(i, (uint32_t)isrs[i], 0x08, // 0x08 = gdt[1] = CS PL0
 				idt_flags_to_attr(true, 0x0 ,false, 0xE));
-
-	// load the IDT for the CPU
-	idt_set();
 }
 
 uint8_t idt_flags_to_attr(bool present, uint8_t privilege, bool storage_seg,

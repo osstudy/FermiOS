@@ -25,6 +25,27 @@
 #include <arch/i386/isr.h>
 
 
+// TODO: move to keyboard driver
+static const char keymap[128] =
+{
+	0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
+	'\t',  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
+	0,     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,
+	'\\',  'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
+	'*',
+	0,
+	' ',
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // F keys
+	0, 0, 0, 0, 0,
+	'-',
+	0, 0, 0,
+	'+',
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0,
+	0,
+	0,
+};
+
 static const char* exception_names[] =
 {
 	"Divide by Zero",
@@ -61,6 +82,8 @@ static const char* exception_names[] =
 	"RESERVED"
 };
 
+static size_t ticks = 0;
+
 void handle_interrupt(struct interrupt_cpu_state* state)
 {
 	uint32_t id = state->isr_id;
@@ -77,7 +100,24 @@ void handle_interrupt(struct interrupt_cpu_state* state)
 		abort();
 	}
 
-	printf("INT: %u\r\n", id);
+	if(id == 33)
+	{
+		uint8_t scancode = inb(0x60);
+
+		if(!(scancode & 0x80))
+			putchar(keymap[scancode]);
+
+		if(keymap[scancode] == '`')
+			printf("TICKS: %u\n", ticks);
+	}
+	else if(id == 32)
+	{
+		ticks++;
+	}
+	else
+		printf("INT: %u\r\n", id);
+
+	pic_eoi(id - IRQ_OFFSET);
 }
 
 void print_cpu_state(struct interrupt_cpu_state* state)
@@ -105,7 +145,7 @@ void print_cpu_state(struct interrupt_cpu_state* state)
 	printf("SEGMENT REGISTERS:\r\n");
 	printf("CS:  0x%p\tDS:  0x%p\r\n", state->cs, state->ds);
 	printf("ES:  0x%p\tFS:  0x%p\r\n", state->es, state->fs);
-	printf("GS:  0x%p\tSS:  0x%p\r\n", state->gs, state->ss);
+	printf("GS:  0x%p\r\n", state->gs);
 }
 
 

@@ -33,7 +33,9 @@ int putchar(int ic)
 {
 #if defined(__is_libk)
 		char c = (char)ic;
-		terminal_write(&c, sizeof(c));
+		if(c == '\n')
+			terminal_putchar('\r');
+		terminal_putchar(c);
 #else
 		// TODO: Implement syscall.
 #endif

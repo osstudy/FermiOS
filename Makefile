@@ -34,7 +34,8 @@ KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
 	$(SRC_DIR)/arch/$(ARCH)/gdt.c   \
 	$(SRC_DIR)/arch/$(ARCH)/ports.c \
 	$(SRC_DIR)/arch/$(ARCH)/idt.c   \
-	$(SRC_DIR)/arch/$(ARCH)/isr.c
+	$(SRC_DIR)/arch/$(ARCH)/isr.c   \
+	$(SRC_DIR)/arch/$(ARCH)/pic.c
 
 KRN_OBJ      := $(addprefix $(OBJ_DIR)/, $(KRN_ASM:%.s=%.o)) \
 	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))             \
