@@ -21,17 +21,21 @@ AR           := i686-elf-ar
 
 AFLAGS       := -f elf32
 CFLAGS_DEBUG := -g -D _DEBUG
-CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG) \
-	-D_KERNEL_VERSION=\"$(VER)\"
+OPTZ_FLAGS   := -O1
+CFLAGS       := -Wall -Wextra -std=gnu11 $(OPTZ_FLAGS) -ffreestanding \
+	$(CFLAGS_DEBUG) -D_KERNEL_VERSION=\"$(VER)\"
 LFLAGS       := -nostdlib -lgcc -T $(SRC_DIR)/arch/$(ARCH)/linker.ld -L$(BIN_DIR)
 INCFLAGS     := -I$(abspath $(INC_DIR)) -I$(abspath $(INC_DIR))/libc
 QFLAGS       := -enable-kvm -monitor stdio -m 1024M -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
-	$(SRC_DIR)/arch/$(ARCH)/tty.c \
-	$(SRC_DIR)/arch/$(ARCH)/gdt.c \
-	$(SRC_DIR)/arch/$(ARCH)/ports.c
+	$(SRC_DIR)/arch/$(ARCH)/tty.c   \
+	$(SRC_DIR)/arch/$(ARCH)/gdt.c   \
+	$(SRC_DIR)/arch/$(ARCH)/ports.c \
+	$(SRC_DIR)/arch/$(ARCH)/idt.c   \
+	$(SRC_DIR)/arch/$(ARCH)/isr.c
+
 KRN_OBJ      := $(addprefix $(OBJ_DIR)/, $(KRN_ASM:%.s=%.o)) \
 	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))             \
 	$(OBJ_DIR)/crtbegin.o                                    \

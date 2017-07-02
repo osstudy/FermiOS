@@ -34,6 +34,7 @@
 #include <kernel/tty.h>
 #include <arch/i386/gdt.h>
 #include <arch/i386/ports.h>
+#include <arch/i386/idt.h>
 
 void dump_font();
 void printf_tests();
@@ -79,10 +80,8 @@ struct tss
 } __attribute__((packed));
 
 
-
 uint64_t gdt[6];
 struct tss my_tss;
-
 
 void kernel_main(size_t mem_size)
 {
@@ -100,6 +99,9 @@ void kernel_main(size_t mem_size)
 	gdt_activate();
 	printf("\x1b[10m[ OK ]\x1b[15;0m GDT Activated\r\n");
 
+	idt_init();
+	printf("\x1b[10m[ OK ]\x1b[15;0m IDT Activated\r\n");
+
 	printf("\x1b[10m[ OK ]\x1b[13m FermiOS \x1b[15;0m");
 	printf(_KERNEL_VERSION);
 	printf(" kernel loaded\r\n");
@@ -107,11 +109,9 @@ void kernel_main(size_t mem_size)
 			mem_size / 1024);
 	printf("\r\n");
 
+
 	cycle_delay(0xFFFFFFFF);
-
-	io_wait();
-
-	if(true)
+	if(false)
 		run_tests();
 
 	printf("\r\n");
@@ -137,7 +137,7 @@ void run_tests()
 	dump_registers();
 	cycle_delay(0xFFF00000);
 	printf("\r\n");
-	print_mem((void*)0x100000, 16 * 20);
+	print_mem((void*)0x00102204, 16 * 20);
 }
 
 void vga_color_test()
