@@ -83,6 +83,7 @@ static const char* exception_names[] =
 };
 
 static size_t ticks = 0;
+extern void run_tests();
 
 void handle_interrupt(struct interrupt_cpu_state* state)
 {
@@ -109,6 +110,8 @@ void handle_interrupt(struct interrupt_cpu_state* state)
 
 		if(keymap[scancode] == '`')
 			printf("TICKS: %u\n", ticks);
+		else if(keymap[scancode] == '/')
+			run_tests();
 	}
 	else if(id == 32)
 	{
