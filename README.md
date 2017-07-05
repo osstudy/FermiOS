@@ -72,7 +72,7 @@ The project is structured as following:
 At the moment the OS is very simple, in fact it's not even an OS, rather an executable on bare-metal booted my GRUB. So there is no installation process, think of it as a LiveCD.
 
 
-## LICESNSE
+## License
 
 This code is distributed with The MIT License (MIT) Copyright (c) 2017 Dmytro Kalchenko
 
