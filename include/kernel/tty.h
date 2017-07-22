@@ -27,24 +27,25 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <arch/i386/ports.h>
 
-#define TTY_TAB_WIDTH 4
 
-enum terminal_state
+#define TTY_TAB_WIDTH 4 // FIXME: make mutable (ewww...)
+
+typedef enum
 {
 	TTY_ST_NORM,
 	TTY_ST_ESC,
 	TTY_ST_COL_FG,
 	TTY_ST_COL_BG
-};
+
+} tty_state_t;
 
 
-void terminal_initialize();
-void terminal_clear();
-void terminal_putchar(char c);
-void terminal_write(const char* data, size_t size);
-void terminal_set_cursot(size_t col, size_t row);
-void terminal_enable_cursor(bool enable);
+void tty_initialize();
+void tty_clear();
+void tty_putchar(char c);
+void tty_write(const char* data, size_t size);
+void tty_set_cursot(size_t col, size_t row);
+void tty_enable_cursor(bool enable);
 
 #endif // KERNEL_TTY_H

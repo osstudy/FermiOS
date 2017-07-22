@@ -22,27 +22,66 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <arch/i386/gdt.h>
+#include <kernel/hal/cpu.h>
+#include <arch/i386/cpu/gdt.h>
+#include <arch/i386/cpu/tss.h>
+#include <arch/i386/cpu/idt.h>
+#include <arch/i386/cpu/isr.h>
+#include <arch/i386/cpu/ports.h>
+#include <arch/i386/pic.h>
 
 
-uint64_t gdt_create_descriptor(uint32_t base, uint32_t limit, uint16_t flag)
+static uint64_t gdt[6];
+static tss_t my_tss;
+
+void cpu_initialize()
 {
-    uint64_t descriptor;
+	// Set up GDT
+	gdt[0] = gdt_create_descriptor(0 ,0 ,0);							// NULL
+	gdt[1] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL0));		// CS K
+	gdt[2] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL0));		// DS K
+	gdt[3] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL3));		// CS U
+	gdt[4] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL3));		// DS U
+	gdt[5] = gdt_create_descriptor((uint32_t)&my_tss,
+			sizeof(my_tss), 0x89);										//  TSS
 
-    // Create the high 32 bit segment
-    descriptor  =  limit       & 0x000F0000;         // set limit bits 19:16
-    descriptor |= (flag <<  8) & 0x00F0FF00;         // set type, p, dpl, s, g, d/b, l and avl fields
-    descriptor |= (base >> 16) & 0x000000FF;         // set base bits 23:16
-    descriptor |=  base        & 0xFF000000;         // set base bits 31:24
+	gdt_set(gdt, sizeof(gdt));
+	gdt_activate();
 
-    // Shift by 32 to allow for low part of segment
-    descriptor <<= 32;
+	// Init IDT
+	idt_init();
 
-    // Create the low 32 bit segment
-    descriptor |= base  << 16;                       // set base bits 15:0
-    descriptor |= limit  & 0x0000FFFF;               // set limit bits 15:0
+	// Init PIC
+	pic_remap_irqs(IRQ_OFFSET, IRQ_OFFSET + 8);
+	pic_load_irqs();
 
-	return descriptor;
+	outb(0x21,0xfc); // Enable keyboard and PIT
+	outb(0xa1,0xff);
+
+	idt_set();
+
+	asm volatile("sti");
+}
+
+cpu_info_t cpu_get_info()
+{
+	cpu_info_t info;
+	info.info = "unknown\n";
+
+	return info;
+}
+
+void cpu_halt()
+{
+	asm volatile("hlt");
+}
+
+void cpu_hcf()
+{
+	while(true)
+	{
+		asm volatile("nop");
+	}
 }
 
 

@@ -22,23 +22,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
+#ifndef KERNEL_HAL_CPU_H
+#define KERNEL_HAL_CPU_H
+
 #include <stddef.h>
+#include <stdbool.h>
 
 
-int memcmp(const void* aptr, const void* bptr, size_t size)
+typedef struct
 {
-	const unsigned char* a = (const unsigned char*) aptr;
-	const unsigned char* b = (const unsigned char*) bptr;
+	char* info; // TODO: Add actual flags
 
-	for (size_t i = 0; i < size; i++)
-	{
-		if (a[i] < b[i])
-			return -1;
-		else if (b[i] < a[i])
-			return 1;
-	}
+} cpu_info_t;
 
-	return 0;
-}
+void cpu_initialize();
+cpu_info_t cpu_get_info();
+void cpu_halt();
+void cpu_hcf(); // HALT AND CATCH FIRE (BUSY LOOP)
 
+#endif // KERNEL_HAL_CPU_H

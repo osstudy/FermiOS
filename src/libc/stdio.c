@@ -30,6 +30,28 @@
 #include <string.h>
 #include <stddef.h>
 
+#if defined(__is_libk)
+#include <kernel/tty.h>
+#endif
+
+
+int puts(const char* string)
+{
+	return printf("%s\n", string);
+}
+
+int putchar(int ic)
+{
+#if defined(__is_libk)
+		char c = (char)ic;
+		if(c == '\n')
+			tty_putchar('\r');
+		tty_putchar(c);
+#else
+		// TODO: Implement syscall.
+#endif
+	return ic;
+}
 
 static bool print(const char* data, size_t length)
 {

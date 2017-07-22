@@ -27,9 +27,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <arch/i386/ports.h>
-#include <arch/i386/idt.h>
-#include <arch/i386/isr.h>
+#include <arch/i386/cpu/ports.h>
+#include <arch/i386/cpu/idt.h>
+#include <arch/i386/cpu/isr.h>
 
 
 #define PIC_MASTER_PORT_CMD 0x0020

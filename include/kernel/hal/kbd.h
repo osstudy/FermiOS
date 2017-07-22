@@ -22,15 +22,57 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
+#ifndef KERNEL_HAL_KBD_H
+#define KERNEL_HAL_KBD_H
+
 #include <stddef.h>
+#include <stdio.h>
+#include <stdbool.h>
 
-void* memset(void* bufptr, int value, size_t size)
+
+// FIXME: NUMPAD is wrong
+
+const char kbd_keymap_us[128] =
 {
-	unsigned char* buf = (unsigned char*) bufptr;
+	0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
+	'\t',  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
+	0,     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,
+	'\\',  'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
+	'*',
+	0,
+	' ',
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0,
+	'-',
+	0, 0, 0,
+	'+',
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0,
+	0,
+	0,
+};
 
-	for (size_t i = 0; i < size; i++)
-		buf[i] = (unsigned char) value;
+const char kbd_keymap_shft_us[128] =
+{
+	0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
+	'\t',  'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',
+	0,     'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '|', '~', 0,
+	'\\',  'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0,
+	'*',
+	0,
+	' ',
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0,
+	'-',
+	0, 0, 0,
+	'+',
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0,
+	0,
+	0,
+};
 
-	return bufptr;
-}
+void kbd_handler();
+
+#endif // KERNEL_HAL_KBD_H
+

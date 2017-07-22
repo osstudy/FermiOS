@@ -22,47 +22,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ARCH_I386_VGA_H
-#define ARCH_I386_VGA_H
-
-#include <stdint.h>
+#include <kernel/hal/kbd.h>
+#include <arch/i386/cpu/ports.h>
 
 
-typedef enum
+static bool shifted_l   = false;
+static bool shifted_r   = false;
+static bool caps_locked = false;
+
+void kbd_handler()
 {
-	VGA_COLOR_BLACK              = 0,
-	VGA_COLOR_BLUE               = 1,
-	VGA_COLOR_GREEN              = 2,
-	VGA_COLOR_CYAN               = 3,
-	VGA_COLOR_RED                = 4,
-	VGA_COLOR_MAGENTA            = 5,
-	VGA_COLOR_BROWN              = 6,
-	VGA_COLOR_LIGHT_GREY         = 7,
-	VGA_COLOR_DARK_GREY          = 8,
-	VGA_COLOR_LIGHT_BLUE         = 9,
-	VGA_COLOR_LIGHT_GREEN        = 10,
-	VGA_COLOR_LIGHT_CYAN         = 11,
-	VGA_COLOR_LIGHT_RED          = 12,
-	VGA_COLOR_LIGHT_MAGENTA      = 13,
-	VGA_COLOR_LIGHT_BROWN        = 14,
-	VGA_COLOR_WHITE              = 15
+	uint8_t scancode = inb(0x60);
 
-} vga_color_t;
+	if(scancode == 0x3A)
+		caps_locked = !caps_locked;
 
+	if(scancode == 0x36)
+		shifted_r = true;
+	if(scancode == 0x2A)
+		shifted_l = true;
 
-static const int32_t   VGA_WIDTH = 80;
-static const int32_t   VGA_HEIGHT = 25;
-static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
+	if(scancode == (0x36 + 0x80))
+		shifted_r = false;
+	if(scancode == (0x2A + 0x80))
+		shifted_l = false;
 
+	bool caps = (shifted_l || shifted_r) ^ caps_locked;
 
-static inline uint8_t vga_entry_color(vga_color_t fg, vga_color_t bg)
-{
-	return fg | bg << 4;
+	if((scancode >= 0x02 && scancode <= 0x37) || scancode == 0x39
+			|| (scancode >= 0x47 && scancode <= 0x53))
+	{
+		if(caps)
+			putchar(kbd_keymap_shft_us[scancode]);
+		else
+			putchar(kbd_keymap_us[scancode]);
+	}
 }
 
-static inline uint16_t vga_entry(uint8_t uc, uint8_t color)
-{
-	return (uint16_t) uc | (uint16_t) color << 8;
-}
-
-#endif // ARCH_I386_VGA_H

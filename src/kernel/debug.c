@@ -22,15 +22,55 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
-#include <stddef.h>
+#include <kernel/debug.h>
 
-size_t strlen(const char* str)
+
+void dbg_print_mem(void* from, size_t size)
 {
-	size_t len = 0;
+#ifndef _DEBUG
+	return;
+#endif
 
-	while (str[len])
-		len++;
+	size_t cols = 16;
+	size_t rest = size;
+	printf("Printing mem from 0x%p to 0x%p: \r\n", from, from + size);
 
-	return len;
+	for(size_t i = 0; i < size; i += cols)
+	{
+		printf("\x1b[11;0m0x%p\x1b[15;0m: ", from);
+
+		for(size_t j = 0; j < cols; j++)
+		{
+			if(j % (cols / 2) == 0 && j != 0)
+				printf(" ");
+
+			if(j <= rest)
+			{
+				uint8_t d = *(uint8_t*)(from + j);
+				if(d)
+					printf("%X ", d);
+				else
+					printf("\x1b[7;0m%X\x1b[15;0m ", d);
+			}
+			else
+				printf("   ");
+		}
+
+		printf("|");
+
+		for(size_t j = 0; j < (cols >= rest ? rest : cols); j++)
+		{
+			char c = *(char*)(from + j);
+			if(' ' <= c && c <= '~')
+				printf("%c", c);
+			else
+				printf("\x1b[0m.\x1b[15;0m");
+		}
+
+		printf("|\r\n");
+		from += cols;
+		rest -= cols;
+	}
 }
+
+

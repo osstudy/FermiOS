@@ -22,16 +22,49 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
+#ifndef ARCH_I386_CPU_IDT_H
+#define ARCH_I386_CPU_IDT_H
+
+#include <stdio.h>
+#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
 
-void* memcpy(void* restrict dstptr, const void* restrict srcptr, size_t size)
+#include <arch/i386/cpu/isr.h>
+
+#define IDT_SIZE 256
+
+
+typedef struct
 {
-	unsigned char* dst = (unsigned char*) dstptr;
-	const unsigned char* src = (const unsigned char*) srcptr;
+	uint16_t offset_low;
+	uint16_t selector;
+	uint8_t reserved;
+	uint8_t attr;
+	uint16_t offset_high;
 
-	for (size_t i = 0; i < size; i++)
-		dst[i] = src[i];
+} __attribute__((packed)) idt_entry_t;
 
-	return dstptr;
-}
+typedef struct
+{
+	uint16_t limit;
+	uint32_t base;
+
+} __attribute__((packed)) idt_ptr_t;
+
+
+idt_entry_t idt[IDT_SIZE];
+idt_ptr_t   idtp;
+
+void idt_init();
+uint8_t idt_flags_to_attr(bool present, uint8_t privilege, bool storage_seg,
+		uint8_t type);
+void idt_set_gate(uint8_t id, uint32_t offset, uint16_t selector,
+		uint8_t attr);
+
+extern void idt_set();
+
+
+#endif // ARCH_I386_CPU_IDT_H

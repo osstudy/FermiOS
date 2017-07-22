@@ -22,25 +22,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
-#include <stddef.h>
 
 
-void* memmove(void* dstptr, const void* srcptr, size_t size)
+__attribute__((__noreturn__))
+void abort()
 {
-	unsigned char* dst = (unsigned char*) dstptr;
-	const unsigned char* src = (const unsigned char*) srcptr;
-
-	if (dst < src)
+#if defined(__is_libk)
+	// TODO: Add proper kernel panic.
+	printf("\x1b[14;12mkernel: panic: abort()\r\n");
+	while(true)
 	{
-		for (size_t i = 0; i < size; i++)
-			dst[i] = src[i];
+		asm("hlt");
 	}
-	else
-	{
-		for (size_t i = size; i != 0; i--)
-			dst[i-1] = src[i-1];
-	}
-
-	return dstptr;
+#else
+	// TODO: Abnormally terminate the process as if by SIGABRT.
+	printf("abort()\n");
+#endif
+	while (1) { }
+	__builtin_unreachable();
 }
+
+int atoi(const char* str)
+{
+	int num = 0;
+
+	while(*str)
+	{
+		num = num * 10 + (*str) - '0';
+		str++;
+	}
+
+	return num;
+}
+

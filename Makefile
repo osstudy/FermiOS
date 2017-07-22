@@ -18,6 +18,7 @@ CROSS_DIR    := cross
 AS           := nasm
 CC           := i686-elf-gcc
 AR           := i686-elf-ar
+TAGS         := #gtags
 
 AFLAGS       := -f elf32
 CFLAGS_DEBUG := -g -D _DEBUG
@@ -30,17 +31,10 @@ QFLAGS       := -enable-kvm -monitor stdio -m 1024M -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
-	$(SRC_DIR)/arch/$(ARCH)/tty.c   \
-	$(SRC_DIR)/arch/$(ARCH)/gdt.c   \
-	$(SRC_DIR)/arch/$(ARCH)/ports.c \
-	$(SRC_DIR)/arch/$(ARCH)/idt.c   \
-	$(SRC_DIR)/arch/$(ARCH)/isr.c   \
-	$(SRC_DIR)/arch/$(ARCH)/pic.c
+	$(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.c")
 
 KRN_OBJ      := $(addprefix $(OBJ_DIR)/, $(KRN_ASM:%.s=%.o)) \
-	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))             \
-	$(OBJ_DIR)/crtbegin.o                                    \
-	$(OBJ_DIR)/crtend.o
+	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))
 
 LIBK_SRC     := $(shell find $(SRC_DIR)/libc -type f -name "*.c")
 LIBK_OBJ     := $(addprefix $(OBJ_DIR)/, $(LIBK_SRC:%.c=%.libk.o))
@@ -91,6 +85,7 @@ $(TARGET)-$(VER)-$(ARCH).iso: $(BIN_DIR)/$(TARGET).bin
 $(BIN_DIR)/$(TARGET).bin: $(BIN_DIR)/libk.a $(KRN_OBJ)
 	$(CC) $(LFLAGS) -o $@ $(CFLAGS) $(KRN_OBJ) -lk $(INCFLAGS)
 	grub-file --is-x86-multiboot $@
+	$(TAGS)
 
 $(OBJ_DIR)/crtbegin.o $(OBJ_DIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@

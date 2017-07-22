@@ -22,47 +22,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ARCH_I386_IDT_H
-#define ARCH_I386_IDT_H
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-
-#include <arch/i386/isr.h>
-
-#define IDT_SIZE 256
+#include <arch/i386/cpu/gdt.h>
 
 
-struct idt_entry
+uint64_t gdt_create_descriptor(uint32_t base, uint32_t limit, uint16_t flag)
 {
-	uint16_t offset_low;
-	uint16_t selector;
-	uint8_t reserved;
-	uint8_t attr;
-	uint16_t offset_high;
-} __attribute__((packed));
+    uint64_t descriptor;
 
-struct idt_ptr
-{
-	uint16_t limit;
-	uint32_t base;
-} __attribute__((packed));
+    // Create the high 32 bit segment
+    descriptor  =  limit       & 0x000F0000;         // set limit bits 19:16
+    descriptor |= (flag <<  8) & 0x00F0FF00;         // set type, p, dpl, s, g, d/b, l and avl fields
+    descriptor |= (base >> 16) & 0x000000FF;         // set base bits 23:16
+    descriptor |=  base        & 0xFF000000;         // set base bits 31:24
 
+    // Shift by 32 to allow for low part of segment
+    descriptor <<= 32;
 
-struct idt_entry idt[IDT_SIZE];
-struct idt_ptr idtp;
+    // Create the low 32 bit segment
+    descriptor |= base  << 16;                       // set base bits 15:0
+    descriptor |= limit  & 0x0000FFFF;               // set limit bits 15:0
 
-void idt_init();
-uint8_t idt_flags_to_attr(bool present, uint8_t privilege, bool storage_seg,
-		uint8_t type);
-void idt_set_gate(uint8_t id, uint32_t offset, uint16_t selector,
-		uint8_t attr);
-
-extern void idt_set();
+	return descriptor;
+}
 
 
-#endif // ARCH_I386_IDT_H

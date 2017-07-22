@@ -22,29 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <arch/i386/isr.h>
+#include <arch/i386/cpu/isr.h>
 
-
-// TODO: move to keyboard driver
-static const char keymap[128] =
-{
-	0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
-	'\t',  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
-	0,     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,
-	'\\',  'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
-	'*',
-	0,
-	' ',
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // F keys
-	0, 0, 0, 0, 0,
-	'-',
-	0, 0, 0,
-	'+',
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0,
-	0,
-	0,
-};
 
 static const char* exception_names[] =
 {
@@ -82,14 +61,12 @@ static const char* exception_names[] =
 	"RESERVED"
 };
 
-static size_t ticks = 0;
-extern void run_tests();
-
+extern void kbd_handler();
 void handle_interrupt(struct interrupt_cpu_state* state)
 {
 	uint32_t id = state->isr_id;
 
-	// handle exceptions
+	// TODO: handle exceptions
 	if(id < 32)
 	{
 		printf("\x1b[12mEXCEPTION %u: '%s' OCCURRED!\r\n", id, exception_names[id]);
@@ -101,29 +78,14 @@ void handle_interrupt(struct interrupt_cpu_state* state)
 		abort();
 	}
 
+	// TODO: call handlers/transform into events
 	if(id == 33)
-	{
-		uint8_t scancode = inb(0x60);
-
-		if(!(scancode & 0x80))
-			putchar(keymap[scancode]);
-
-		if(keymap[scancode] == '`')
-			printf("TICKS: %u\n", ticks);
-		else if(keymap[scancode] == '/')
-			run_tests();
-	}
-	else if(id == 32)
-	{
-		ticks++;
-	}
-	else
-		printf("INT: %u\r\n", id);
+		kbd_handler();
 
 	pic_eoi(id - IRQ_OFFSET);
 }
 
-void print_cpu_state(struct interrupt_cpu_state* state)
+void print_cpu_state(struct interrupt_cpu_state* state) // FIXME: move out of isr
 {
 	printf("INTERRUPT CPU STATE:\r\n\r\n");
 

@@ -22,23 +22,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
+#ifndef KERNEL_HAL_BOOT_H
+#define KERNEL_HAL_BOOT_H
 
-#if defined(__is_libk)
-#include <kernel/tty.h>
-#endif
+#include <stddef.h>
+#include <kernel/hal/cpu.h>
 
 
-int putchar(int ic)
+typedef struct // TODO: Expand
 {
-#if defined(__is_libk)
-		char c = (char)ic;
-		if(c == '\n')
-			terminal_putchar('\r');
-		terminal_putchar(c);
-#else
-		// TODO: Implement syscall.
-#endif
-	return ic;
-}
+	size_t mem_size;
+	cpu_info_t cpu_info;
 
+} boot_info_t;
+
+#endif // KERNEL_HAL_BOOT_H

@@ -22,47 +22,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ARCH_I386_VGA_H
-#define ARCH_I386_VGA_H
+#ifndef ARCH_I386_CPU_TSS_H
+#define ARCH_I386_CPU_TSS_H
 
-#include <stdint.h>
-
-
-typedef enum
+typedef struct
 {
-	VGA_COLOR_BLACK              = 0,
-	VGA_COLOR_BLUE               = 1,
-	VGA_COLOR_GREEN              = 2,
-	VGA_COLOR_CYAN               = 3,
-	VGA_COLOR_RED                = 4,
-	VGA_COLOR_MAGENTA            = 5,
-	VGA_COLOR_BROWN              = 6,
-	VGA_COLOR_LIGHT_GREY         = 7,
-	VGA_COLOR_DARK_GREY          = 8,
-	VGA_COLOR_LIGHT_BLUE         = 9,
-	VGA_COLOR_LIGHT_GREEN        = 10,
-	VGA_COLOR_LIGHT_CYAN         = 11,
-	VGA_COLOR_LIGHT_RED          = 12,
-	VGA_COLOR_LIGHT_MAGENTA      = 13,
-	VGA_COLOR_LIGHT_BROWN        = 14,
-	VGA_COLOR_WHITE              = 15
+	uint16_t link;			uint16_t link_r;
+	uint32_t esp0;
+	uint16_t ss0;			uint16_t ss0_r;
+	uint32_t esp1;
+	uint16_t ss1;			uint16_t ss1_r;
+	uint32_t esp2;
+	uint16_t ss2;			uint16_t ss2_r;
+	uint32_t cr3;
+	uint32_t eip;
+	uint32_t eflags;
+	uint32_t eax;
+	uint32_t ecx;
+	uint32_t edx;
+	uint32_t ebx;
+	uint32_t esp;
+	uint32_t ebp;
+	uint32_t esi;
+	uint32_t edi;
+	uint16_t es;			uint16_t es_r;
+	uint16_t cs;			uint16_t cs_r;
+	uint16_t ss;			uint16_t ss_r;
+	uint16_t ds;			uint16_t ds_r;
+	uint16_t fs;			uint16_t fs_r;
+	uint16_t gs;			uint16_t gs_r;
+	uint16_t ldtr;			uint16_t ldtr_r;
+	uint16_t iopb_off_r;	uint16_t iopb_off;
 
-} vga_color_t;
+} __attribute__((packed)) tss_t;
 
 
-static const int32_t   VGA_WIDTH = 80;
-static const int32_t   VGA_HEIGHT = 25;
-static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
-
-
-static inline uint8_t vga_entry_color(vga_color_t fg, vga_color_t bg)
-{
-	return fg | bg << 4;
-}
-
-static inline uint16_t vga_entry(uint8_t uc, uint8_t color)
-{
-	return (uint16_t) uc | (uint16_t) color << 8;
-}
-
-#endif // ARCH_I386_VGA_H
+#endif // ARCH_I386_CPU_TSS_H

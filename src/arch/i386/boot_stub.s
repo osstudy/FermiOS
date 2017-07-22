@@ -63,6 +63,7 @@ _start:
 	call _init
 
 	; calculate mem from multiboot info
+	; TODO: pass whole multiboot stuct
 	xor eax, eax
 	add ebx, 0x4
 	add eax, [ebx]
@@ -71,9 +72,9 @@ _start:
 	push eax
 
 	; Transfer to main kernel.
-	extern kernel_main
+	extern boot_i386
 	cld
-	call kernel_main
+	call boot_i386
 
 	cli
 .hang:

@@ -22,52 +22,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <arch/i386/idt.h>
+#include <arch/i386/cpu/ports.h>
 
 
-static isr_func isrs[] =
+void outb(uint16_t port, uint8_t val)
 {
-	isr0,  isr1,  isr2,  isr3,  isr4,  isr5,  isr6,  isr7,  isr8,  isr9,  isr10,
-	isr11, isr12, isr13, isr14, isr15, isr16, isr17, isr18, isr19, isr20, isr21,
-	isr22, isr23, isr23, isr24, isr25, isr26, isr27, isr28, isr29, isr30, isr31
-};
-
-void idt_init()
-{
-	// set up the IDT pointer
-	idtp.limit = (sizeof(struct idt_entry) * IDT_SIZE) - 1;
-	idtp.base = (uint32_t)&idt;
-
-	// clean the IDT
-	memset(&idt, 0, sizeof(struct idt_entry) * IDT_SIZE);
-
-	// load ISRs into IDT
-	size_t i = 0;
-	for(; i < sizeof(isrs) / sizeof(isr_func); i++)
-		idt_set_gate(i, (uint32_t)isrs[i], 0x08, // 0x08 = gdt[1] = CS PL0
-				idt_flags_to_attr(true, 0x0 ,false, 0xE));
+	asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
 }
 
-uint8_t idt_flags_to_attr(bool present, uint8_t privilege, bool storage_seg,
-		uint8_t type)
+void outw(uint16_t port, uint16_t val)
 {
-	uint8_t attr = type & 0x0F;
-	attr |= (storage_seg ? 1 : 0) << 4;
-	attr |= (privilege & 0x03) << 5;
-	attr |= (present ? 1 : 0) << 7;
-
-	return attr;
+	asm volatile("outw %0, %1" : : "a"(val), "Nd"(port));
 }
 
-void idt_set_gate(uint8_t id, uint32_t offset, uint16_t selector, uint8_t attr)
+void outl(uint16_t port, uint32_t val)
 {
-	idt[id].offset_low  = offset & 0xFFFF;
-	idt[id].offset_high = (offset >> 16) & 0xFFFF;
-	idt[id].reserved    = 0;
-	idt[id].selector    = selector;
-	idt[id].attr        = attr;
+	asm volatile("outl %0, %1" : : "a"(val), "Nd"(port));
 }
 
 
+uint8_t inb(uint16_t port)
+{
+	uint8_t ret;
+	asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+}
+
+uint16_t inw(uint16_t port)
+{
+	uint16_t ret;
+	asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+
+}
+
+uint32_t inl(uint16_t port)
+{
+	uint32_t ret;
+	asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+
+}
 
 
+void io_wait()
+{
+	outb(0x80, 0x00); // 0x80 = POST
+}

@@ -22,8 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ARCH_I386_ISR_H
-#define ARCH_I386_ISR_H
+#ifndef ARCH_I386_CPU_ISR_H
+#define ARCH_I386_CPU_ISR_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -83,4 +83,4 @@ extern void isr30();
 extern void isr31();
 
 
-#endif //ARCH_i386_ISR_H
+#endif //ARCH_i386_CPU_ISR_H

@@ -22,21 +22,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ARCH_I386_PORTS_H
-#define ARCH_I386_PORTS_H
+#ifndef KERNEL_DEBUG_H
+#define KERNEL_DEBUG_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
 
-void outb(uint16_t, uint8_t);
-void outw(uint16_t, uint16_t);
-void outl(uint16_t, uint32_t);
+void dbg_dump_cpu_state();
+void dbg_print_mem(void*, size_t);
 
-uint8_t  inb(uint16_t);
-uint16_t inw(uint16_t);
-uint32_t inl(uint16_t);
-
-void io_wait();
-
-#endif // ARCH_I386_PORTS_H
+#endif // KERNEL_DEBUG_H
