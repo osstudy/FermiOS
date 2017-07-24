@@ -3,7 +3,7 @@ FermiOS
 
 ## About
 
-![FermiOS Screenshot](https://i.imgur.com/euqEGgy.png)
+![FermiOS Screenshot](https://i.imgur.com/f1qbR8v.png)
 
 FermiOS is my yet another try to make an OS. This time I am also reading a book on OSes, so maybe it'll yield something. At the moment it's going to
 be a 32-bit system, but I will look into long mode later.
@@ -12,7 +12,11 @@ be a 32-bit system, but I will look into long mode later.
 The current design goal is simple:
 
 * [✓] It should boot;
-* [ ] Basic kernel level IO. Aka `puts()` and `getchar()`.
+* [✓] Basic kernel level IO. Aka `puts()` and `getchar()`;
+* [✓] (Basic)Event System;
+* [ ] (Basic) PCI driver;
+* [ ] (Basic) ATA driver.
+
 
 After that, I will actually think what I really want from this. Definitely processes (what's the point otherwise) and FS.
 
@@ -48,19 +52,22 @@ The project is structured as following:
 ├── include
 │   ├── arch
 │   ├── kernel
+│   │   └── hal
 │   └── libc
 ├── obj
 ├── src
 │   ├── arch
-│   │   └── i386
 │   ├── kernel
 │   └── libc
 └── sysroot
+    └── boot
 ```
 
 * `bin` - this is where the linked binaries are placed into (like kernel, libk and (eventually), libc);
 * `cross` - this is where the cross-compiler toolchain lives;
 * `include` - here the `.h` header files live, the subfolder mirror (more-or-less) the `src` structure;
+	* `kernel`
+		* `hal` - HAL (Hardware Abstraction Layer) descriptions of architecture independant hardware interfaces;
 * `obj` - intermediate (unlinked) objects are put here during the build, the `.o` files are placed into mirrored subfolders;
 * `src` - here lie all the source files:
 	* `arch` - architecture specific code is placed here, atm only i386 is supported;
