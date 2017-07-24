@@ -22,38 +22,30 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
-
-#include <kernel/tty.h>
-#include <arch/i386/vga.h> // FIXME: shouldn't TTY be arch independant?
+#include <kernel/hal/tty.h>
+#include <arch/i386/vga.h>
+#include <arch/i386/cpu/ports.h>
 
 
-static int32_t   tty_row;
-static int32_t   tty_column;
-static uint8_t   tty_color;
+static int tty_row;
+static int tty_column;
+static uint8_t tty_color_fg;
+static uint8_t tty_color_bg;
+
 static uint16_t* tty_buffer;
 
-// TODO: ACTUALLY DO THIS CORRECT
-static tty_state_t       tty_state            = TTY_ST_NORM;
-static char              tty_esc_buffer[16]   = {0};
-static size_t            tty_esc_buffer_index = 0;
-static const vga_color_t tty_color_default    = VGA_COLOR_LIGHT_GREY |
-	VGA_COLOR_BLACK << 14;
+static const uint8_t tty_color_default_fg = VGA_COLOR_LIGHT_GREY;
+static const uint8_t tty_color_default_bg = VGA_COLOR_BLACK;
 
 
 void tty_initialize()
 {
-	tty_row    = 0;
-	tty_column = 0;
-	tty_color  = tty_color_default;
-	tty_buffer = VGA_MEMORY;
+	tty_color_fg = tty_color_default_fg;
+	tty_color_bg = tty_color_default_bg;
+	tty_buffer   = VGA_MEMORY;
 
 	tty_enable_cursor(true);
-	tty_set_cursot(0, 0);
+	tty_set_cursor(0, 0);
 	tty_clear();
 }
 
@@ -64,14 +56,12 @@ void tty_clear()
 		for (int32_t x = 0; x < VGA_WIDTH; x++)
 		{
 			const size_t index = y * VGA_WIDTH + x;
-			tty_buffer[index] = vga_entry(' ', tty_color);
+			tty_buffer[index] = vga_entry(' ',
+					vga_entry_color(tty_color_fg, tty_color_bg));
 		}
 	}
-}
 
-void tty_setcolor(uint8_t color)
-{
-	tty_color = color;
+	tty_set_cursor(0, 0);
 }
 
 void tty_putentryat(unsigned char c, uint8_t color, size_t x, size_t y)
@@ -80,16 +70,10 @@ void tty_putentryat(unsigned char c, uint8_t color, size_t x, size_t y)
 	tty_buffer[index] = vga_entry(c, color);
 }
 
-void tty_norm_handler(char c)
+void tty_putchar(char c)
 {
 	switch(c)
 	{
-		case '\x1b':
-		{
-			tty_state = TTY_ST_ESC;
-			break;
-		}
-
 		case '\r':
 		{
 			tty_column = 0;
@@ -104,12 +88,7 @@ void tty_norm_handler(char c)
 
 		case '\t':
 		{
-			for(size_t i = 0; i < TTY_TAB_WIDTH; i++)
-			{
-				tty_putentryat(' ', tty_color, tty_column, tty_row);
-				tty_column++;
-			}
-
+			tty_write("    ", 4); // FIXME: is it even my concenr?
 			break;
 		}
 
@@ -124,7 +103,8 @@ void tty_norm_handler(char c)
 
 		default:
 		{
-			tty_putentryat(c, tty_color, tty_column, tty_row);
+			tty_putentryat(c, vga_entry_color(tty_color_fg, tty_color_bg),
+						tty_column, tty_row);
 			tty_column++;
 
 			break;
@@ -152,80 +132,12 @@ void tty_norm_handler(char c)
 				(VGA_HEIGHT) * VGA_WIDTH * 2);
 
 		tty_row--;
+		for(int i = 0; i < VGA_WIDTH; i++) // Painting BG with selected color
+			tty_putentryat(' ', vga_entry_color(tty_color_fg,
+						tty_color_bg), i, tty_row);
 	}
 
-	tty_set_cursot(tty_column, tty_row);
-}
-
-void tty_putchar(char c)
-{
-	switch(tty_state)
-	{
-		case TTY_ST_ESC:
-		{
-			memset(tty_esc_buffer, 0, 16);
-			tty_esc_buffer_index = 0;
-
-			if(c == '[')
-				tty_state = TTY_ST_COL_FG;
-			else if(c == 'm')
-				tty_state = TTY_ST_NORM;
-			else
-				abort(); // FIXME: proper error?
-
-			break;
-		}
-
-		case TTY_ST_COL_FG:
-		{
-			if(c == ';' || c == 'm')
-			{
-				int col = atoi(tty_esc_buffer);
-
-				if(col == 0 && c == 'm')
-					tty_color = tty_color_default;
-				else
-					tty_color = (tty_color & 0x70) | (col & 0x0F);
-
-				memset(tty_esc_buffer, 0, 16);
-				tty_esc_buffer_index = 0;
-
-				if(c != 'm')
-					tty_state = TTY_ST_COL_BG;
-				else
-					tty_state = TTY_ST_NORM;
-			}
-			else
-				tty_esc_buffer[tty_esc_buffer_index++] = c;
-
-			break;
-		}
-
-		case TTY_ST_COL_BG:
-		{
-			if(c == 'm')
-			{
-				int col = atoi(tty_esc_buffer);
-				tty_color = (tty_color & 0x0F) | (col & 0x0F) << 4;
-				tty_color &= 0x7F; //prevent blink
-
-				tty_state = TTY_ST_NORM;
-			}
-			else
-				tty_esc_buffer[tty_esc_buffer_index++] = c;
-
-			break;
-		}
-
-
-
-		default:
-		case TTY_ST_NORM:
-		{
-			tty_norm_handler(c);
-			break;
-		}
-	}
+	tty_set_cursor(tty_column, tty_row);
 }
 
 void tty_write(const char* data, size_t size)
@@ -234,11 +146,19 @@ void tty_write(const char* data, size_t size)
 		tty_putchar(data[i]);
 }
 
-void tty_set_cursot(size_t col, size_t row)
+void tty_set_cursor_delta(int col, int row)
+{
+	tty_set_cursor(tty_column += col, tty_row += row);
+}
+
+void tty_set_cursor(size_t col, size_t row)
 {
 	// FIXME: don't hardcode the ports. get em from BIOS.
 
-	uint16_t pos = row * VGA_WIDTH + col;
+	tty_column = col;
+	tty_row = row;
+
+	uint16_t pos = (row * VGA_WIDTH) + col;
 	outb(0x3D4, 0x0F);
 	outb(0x3D5, (uint8_t)(pos & 0xFF));
 	outb(0x3D4, 0x0E);
@@ -252,4 +172,10 @@ void tty_enable_cursor(bool enable)
 		outb(0x3D5, 0x0D);
 	else
 		outb(0x3D5, 0x3F);
+}
+
+void tty_set_color(uint8_t fg, uint8_t bg)
+{
+	tty_color_fg = fg;
+	tty_color_bg = bg;
 }

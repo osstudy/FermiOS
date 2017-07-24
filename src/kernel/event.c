@@ -52,6 +52,15 @@ int event_get_id(char* name)
 	return -1;
 }
 
+char* event_get_name(int id)
+{
+	for(int i = 0; i < EVENT_TYPES_SIZE; i++)
+		if(i == id)
+			return event_types[i];
+
+	return NULL;
+}
+
 void event_add_handler(int id, event_handler_t handler)
 {
 	bool added = false;
@@ -70,6 +79,19 @@ void event_add_handler(int id, event_handler_t handler)
 
 	if(!added)
 		abort(); // FIXME: return error
+}
+
+size_t event_get_num_handlers(int id)
+{
+	size_t ret = 0;
+
+	for(size_t i = 0; i < EVENTS_SIZE; i++)
+	{
+		if(events[i].handler != NULL && events[i].id == id)
+			ret++;
+	}
+
+	return ret;
 }
 
 void event_trigger(int id, void* msg)

@@ -36,6 +36,7 @@
 
 typedef void (*event_handler_t)(void*);
 
+// TODO: Array of events {id, name, subs[]} with array of subs {handler}
 typedef struct
 {
 	int id;
@@ -46,7 +47,9 @@ typedef struct
 
 int event_add_type(char* name);
 int event_get_id(char* name);
+char* event_get_name(int id);
 void event_add_handler(int id, event_handler_t handler);
+size_t event_get_num_handlers(int id);
 // TODO: add remove() functions
 void event_trigger(int id, void* msg);
 

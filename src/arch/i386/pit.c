@@ -22,56 +22,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <kernel/hal/kbd.h>
+#include <kernel/hal/timer.h>
 #include <arch/i386/cpu/ports.h>
 #include <arch/i386/cpu/isr.h>
 
 
-static bool shifted_l   = false;
-static bool shifted_r   = false;
-static bool caps_locked = false;
+// TODO: Add configs
 
-int kbd_event_id = -1;
+int timer_event_id = -1;
+size_t timer_ticks = 0;
 
-
-void kbd_init()
+void timer_init()
 {
-	isr_add_handler(IRQ_OFFSET + 1, kbd_handler);
-	kbd_event_id = event_add_type("keyboard");
+	isr_add_handler(IRQ_OFFSET + 0, timer_handler);
+	timer_event_id = event_add_type("timer");
 }
 
-void kbd_handler()
+void timer_handler()
 {
-	char character = '\0';
+	timer_ticks++;
 
-	uint8_t scancode = inb(0x60);
-	io_wait();
-
-	if(scancode == 0x3A)
-		caps_locked = !caps_locked;
-
-	if(scancode == 0x36)
-		shifted_r = true;
-	if(scancode == 0x2A)
-		shifted_l = true;
-
-	if(scancode == (0x36 + 0x80))
-		shifted_r = false;
-	if(scancode == (0x2A + 0x80))
-		shifted_l = false;
-
-	bool caps = (shifted_l || shifted_r) ^ caps_locked;
-
-	// FIXME: Only alpha chars should be affected by CAPS LOCK
-	if((scancode >= 0x02 && scancode <= 0x37) || scancode == 0x39
-			|| (scancode >= 0x47 && scancode <= 0x53))
-	{
-		if(caps)
-			character = kbd_keymap_shft_us[scancode];
-		else
-			character = kbd_keymap_us[scancode];
-	}
-
-	kbd_event_msg_t msg = {scancode, character};
-	event_trigger(kbd_event_id, (void*)&msg);
+	event_trigger(timer_event_id, (void*)&timer_ticks);
 }

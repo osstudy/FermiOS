@@ -31,9 +31,29 @@
 #include <stddef.h>
 
 #if defined(__is_libk)
-#include <kernel/tty.h>
+	#include <kernel/hal/tty.h>
+	#include <kernel/hal/kbd.h>
 #endif
 
+
+extern char getchar_buffer;
+extern bool getchar_lock;
+int getchar()
+{
+	char c = '\0';
+
+#if defined(__is_libk)
+	while(getchar_lock)
+		asm("hlt");
+
+	getchar_lock = true;
+	c = getchar_buffer;
+#else
+	// TODO: syscall?
+#endif
+
+	return c;
+}
 
 int puts(const char* string)
 {

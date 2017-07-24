@@ -1,8 +1,8 @@
 TARGET       := fermios
 
 VER_MAJ      := 1
-VER_MIN      := 1
-VER_FIX      := 1
+VER_MIN      := 2
+VER_FIX      := 0
 VER_SUF      := a
 VER          := $(VER_MAJ).$(VER_MIN).$(VER_FIX)$(VER_SUF)
 

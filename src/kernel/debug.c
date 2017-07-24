@@ -37,7 +37,7 @@ void dbg_print_mem(void* from, size_t size)
 
 	for(size_t i = 0; i < size; i += cols)
 	{
-		printf("\x1b[11;0m0x%p\x1b[15;0m: ", from);
+		printf("0x%p: ", from);
 
 		for(size_t j = 0; j < cols; j++)
 		{
@@ -47,10 +47,7 @@ void dbg_print_mem(void* from, size_t size)
 			if(j <= rest)
 			{
 				uint8_t d = *(uint8_t*)(from + j);
-				if(d)
-					printf("%X ", d);
-				else
-					printf("\x1b[7;0m%X\x1b[15;0m ", d);
+				printf("%X ", d);
 			}
 			else
 				printf("   ");
@@ -64,7 +61,7 @@ void dbg_print_mem(void* from, size_t size)
 			if(' ' <= c && c <= '~')
 				printf("%c", c);
 			else
-				printf("\x1b[0m.\x1b[15;0m");
+				printf(".");
 		}
 
 		printf("|\r\n");

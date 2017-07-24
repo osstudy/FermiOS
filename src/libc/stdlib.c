@@ -33,7 +33,7 @@ void abort()
 {
 #if defined(__is_libk)
 	// TODO: Add proper kernel panic.
-	printf("\x1b[14;12mkernel: panic: abort()\r\n");
+	printf("kernel: panic: abort()\r\n");
 	while(true)
 	{
 		asm("hlt");

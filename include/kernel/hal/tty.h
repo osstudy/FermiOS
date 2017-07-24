@@ -22,32 +22,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef KERNEL_TTY_H
-#define KERNEL_TTY_H
+#ifndef KERNEL_HAL_TTY_H
+#define KERNEL_HAL_TTY_H
 
-#include <stddef.h>
+#include <stdlib.h>
 #include <stdbool.h>
-#include <arch/i386/cpu/ports.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 #include <sys_common.h>
 
 
-#define TTY_TAB_WIDTH 4 // FIXME: make mutable (ewww...)
-
-typedef enum
-{
-	TTY_ST_NORM,
-	TTY_ST_ESC,
-	TTY_ST_COL_FG,
-	TTY_ST_COL_BG
-
-} tty_state_t;
-
+// FIXME: I don't really feel like this should emulate real TTY
 
 void tty_initialize();
 void tty_clear();
 void tty_putchar(char c);
 void tty_write(const char* data, size_t size);
-void tty_set_cursot(size_t col, size_t row);
+void tty_set_cursor(size_t col, size_t row);
+void tty_set_color(uint8_t fg, uint8_t bg);
+void tty_set_cursor_delta(int col, int row);
+// FIXME: IMPLEMENR ME!
+//size_t tty_get_cursor_x();
+//size_t tty_get_cursor_y();
+//uint8_t tty_get_color_fg();
+//uint8_t tty_get_color_bg();
 void tty_enable_cursor(bool enable);
 
-#endif // KERNEL_TTY_H
+#endif // KERNEL_HAL_TTY_H

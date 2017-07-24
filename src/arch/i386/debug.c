@@ -22,15 +22,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <kernel/hal/cpu.h>
 #include <kernel/debug.h>
 
 
+void cpu_dump_state()
+{
+	dbg_dump_cpu_state();
+}
+
 void dbg_dump_cpu_state()
 {
-#ifndef _DEBUG
-	return;
-#endif
-
 	register int eax asm("eax");
 	register int ebx asm("ebx");
 	register int ecx asm("ecx");

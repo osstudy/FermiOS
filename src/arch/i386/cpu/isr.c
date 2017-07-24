@@ -91,9 +91,9 @@ void handle_interrupt(interrupt_cpu_state_t* state)
 	// TODO: handle exceptions
 	if(id < 32)
 	{
-		printf("\x1b[12mEXCEPTION %u: '%s' OCCURRED!\r\n", id,
+		printf("EXCEPTION %u: '%s' OCCURRED!\r\n", id,
 				exception_names[id]);
-		printf("ERR_CODE: %u\r\n\x1b[15;0m");
+		printf("ERR_CODE: %u\r\n");
 
 		printf("\r\n");
 		print_cpu_state(state);

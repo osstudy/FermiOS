@@ -40,5 +40,6 @@ void cpu_initialize();
 cpu_info_t cpu_get_info();
 void cpu_halt();
 void cpu_hcf(); // HALT AND CATCH FIRE (BUSY LOOP)
+void cpu_dump_state();
 
 #endif // KERNEL_HAL_CPU_H
