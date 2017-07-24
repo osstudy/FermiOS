@@ -30,6 +30,7 @@
 #include <arch/i386/cpu/ports.h>
 #include <arch/i386/cpu/idt.h>
 #include <arch/i386/cpu/isr.h>
+#include <sys_common.h>
 
 
 #define PIC_MASTER_PORT_CMD 0x0020

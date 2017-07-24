@@ -27,6 +27,8 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <arch/i386/cpu/ports.h>
+#include <sys_common.h>
 
 
 #define TTY_TAB_WIDTH 4 // FIXME: make mutable (ewww...)

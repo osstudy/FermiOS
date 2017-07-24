@@ -27,6 +27,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <sys_common.h>
 
 
 void outb(uint16_t, uint8_t);

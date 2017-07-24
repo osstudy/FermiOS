@@ -22,41 +22,64 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <limits.h>
-
-#include <sys_common.h>
-#include <kernel/hal/boot.h>
-#include <kernel/hal/cpu.h>
-#include <kernel/hal/kbd.h>
-#include <kernel/tty.h>
-#include <kernel/debug.h>
+#include <kernel/event.h>
 
 
-void kbd_event_test(void* msg)
+static char*   event_types[EVENT_TYPES_SIZE] = {0};
+static event_t events[EVENTS_SIZE]           = {0};
+
+
+int event_add_type(char* name)
 {
-	kbd_event_msg_t m = *((kbd_event_msg_t*)msg);
+	for(size_t i = 0; i < EVENT_TYPES_SIZE; i++)
+	{
+		if(event_types[i] == NULL)
+		{
+			event_types[i] = name;
+			return i;
+		}
+	}
 
-	putchar(m.character);
+	return -1;
 }
 
-void kernel_main(boot_info_t boot_info)
+int event_get_id(char* name)
 {
-	tty_initialize();
-	kbd_init();
+	for(size_t i = 0; i < EVENT_TYPES_SIZE; i++)
+		if(event_types[i] == name)
+			return i;
 
-	printf("\x1b[15;0m");
-	printf("FermiOS %s loaded.\n", _KERNEL_VERSION);
-	printf("Avaiable RAM: %u MB\n", boot_info.mem_size / 1000);
-	printf("CPU: %s\n", boot_info.cpu_info.info);
-
-	event_add_handler(kbd_event_id, kbd_event_test);
-
-	while(true)
-		cpu_halt();
+	return -1;
 }
 
+void event_add_handler(int id, event_handler_t handler)
+{
+	bool added = false;
+
+	for(size_t i = 0; i < EVENTS_SIZE; i++)
+	{
+		if(events[i].handler == NULL )
+		{
+			events[i].id = id;
+			events[i].handler = handler;
+
+			added = true;
+			break;
+		}
+	}
+
+	if(!added)
+		abort(); // FIXME: return error
+}
+
+void event_trigger(int id, void* msg)
+{
+	for(size_t i = 0; i < EVENTS_SIZE; i++)
+	{
+		if(events[i].id == id)
+		{
+			if(events[i].handler != NULL)
+				events[i].handler(msg);
+		}
+	}
+}

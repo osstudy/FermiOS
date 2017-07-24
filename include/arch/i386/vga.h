@@ -26,6 +26,7 @@
 #define ARCH_I386_VGA_H
 
 #include <stdint.h>
+#include <sys_common.h>
 
 
 typedef enum

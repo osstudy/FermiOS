@@ -25,6 +25,8 @@
 #include <arch/i386/cpu/isr.h>
 
 
+isr_handler_entry_t isr_handlers[ISR_HANDERS_SIZE] = {0};
+
 static const char* exception_names[] =
 {
 	"Divide by Zero",
@@ -61,15 +63,36 @@ static const char* exception_names[] =
 	"RESERVED"
 };
 
-extern void kbd_handler();
-void handle_interrupt(struct interrupt_cpu_state* state)
+// FIXME: Check shit yo!
+void isr_add_handler(size_t isr, isr_handler_t handler)
+{
+	bool added = false;
+
+	for(size_t i = 0; i < ISR_HANDERS_SIZE; i++)
+	{
+		if(isr_handlers[i].handler == NULL)
+		{
+			isr_handlers[i].isr = isr;
+			isr_handlers[i].handler = handler;
+
+			added = true;
+			break;
+		}
+	}
+
+	if(!added)
+		abort(); // FIXME: error results and stuff
+}
+
+void handle_interrupt(interrupt_cpu_state_t* state)
 {
 	uint32_t id = state->isr_id;
 
 	// TODO: handle exceptions
 	if(id < 32)
 	{
-		printf("\x1b[12mEXCEPTION %u: '%s' OCCURRED!\r\n", id, exception_names[id]);
+		printf("\x1b[12mEXCEPTION %u: '%s' OCCURRED!\r\n", id,
+				exception_names[id]);
 		printf("ERR_CODE: %u\r\n\x1b[15;0m");
 
 		printf("\r\n");
@@ -79,13 +102,16 @@ void handle_interrupt(struct interrupt_cpu_state* state)
 	}
 
 	// TODO: call handlers/transform into events
-	if(id == 33)
-		kbd_handler();
+	for(size_t i = 0; i < ISR_HANDERS_SIZE; i++)
+	{
+		if(isr_handlers[i].isr == id)
+			isr_handlers[i].handler();
+	}
 
 	pic_eoi(id - IRQ_OFFSET);
 }
 
-void print_cpu_state(struct interrupt_cpu_state* state) // FIXME: move out of isr
+void print_cpu_state(interrupt_cpu_state_t* state) // FIXME: move out of isr
 {
 	printf("INTERRUPT CPU STATE:\r\n\r\n");
 

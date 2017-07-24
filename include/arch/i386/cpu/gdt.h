@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <arch/i386/cpu/tss.h>
+#include <sys_common.h>
 
 
 #define GDT_SEG_DESCTYPE(x)  ((x) << 0x04) // Descriptor type (0 for system, 1 for code/data)

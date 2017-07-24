@@ -25,7 +25,7 @@
 #include <arch/i386/pic.h>
 
 
-static isr_func irqs[] =
+static isr_func_t irqs[] =
 {
 	irq0,  irq1, irq2,  irq3,  irq4,  irq5,  irq6,  irq7,
 	irq8,  irq9, irq10, irq11, irq12, irq13, irq14, irq15
@@ -36,7 +36,7 @@ void pic_load_irqs()
 {
 	// load IRQs into IDT
 	size_t i = 0;
-	for(; i < sizeof(irqs) / sizeof(isr_func); i++)
+	for(; i < sizeof(irqs) / sizeof(isr_func_t); i++)
 		idt_set_gate(i + IRQ_OFFSET, (uint32_t)irqs[i], 0x08, // 0x08 = gdt[1] = CS PL0
 				idt_flags_to_attr(true, 0x0 ,false, 0xE));
 }

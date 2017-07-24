@@ -27,6 +27,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <sys_common.h>
 
 
 typedef struct

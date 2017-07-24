@@ -22,41 +22,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <limits.h>
+#ifndef FERMIOS_SYS_COMMON_H
+#define FERMIOS_SYS_COMMON_H
 
-#include <sys_common.h>
-#include <kernel/hal/boot.h>
-#include <kernel/hal/cpu.h>
-#include <kernel/hal/kbd.h>
-#include <kernel/tty.h>
-#include <kernel/debug.h>
+#define UNUSED(expr) do { (void)(expr); } while (0)
+#define CLAMP(val, min, max) (val < min) ? min : ((val > max) ? max : val)
+#define MIN(val1, val2) (val1 <= val2) ? val1 : val2
+#define MAX(val1, val2) (val1 <= val2) ? val2 : val1
 
-
-void kbd_event_test(void* msg)
-{
-	kbd_event_msg_t m = *((kbd_event_msg_t*)msg);
-
-	putchar(m.character);
-}
-
-void kernel_main(boot_info_t boot_info)
-{
-	tty_initialize();
-	kbd_init();
-
-	printf("\x1b[15;0m");
-	printf("FermiOS %s loaded.\n", _KERNEL_VERSION);
-	printf("Avaiable RAM: %u MB\n", boot_info.mem_size / 1000);
-	printf("CPU: %s\n", boot_info.cpu_info.info);
-
-	event_add_handler(kbd_event_id, kbd_event_test);
-
-	while(true)
-		cpu_halt();
-}
-
+#endif // FERMIOS_SYS_COMMON_H

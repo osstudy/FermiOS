@@ -30,12 +30,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <arch/i386/pic.h>
+#include <sys_common.h>
 
-#define IRQ_OFFSET 32
 
-typedef void(*isr_func)(void);
+#define IRQ_OFFSET       32
+#define ISR_HANDERS_SIZE 255
 
-struct interrupt_cpu_state
+
+typedef void(*isr_func_t)(void);
+typedef void(*isr_handler_t)(void);
+
+typedef struct
+{
+	size_t isr;
+	isr_handler_t handler;
+
+} isr_handler_entry_t;
+
+typedef struct
 {
 	uint32_t gs, fs, es, ds;                       // pushed manually
 	uint32_t edi, esi, ebp, esp,                   // pusha
@@ -43,11 +55,14 @@ struct interrupt_cpu_state
 	uint32_t isr_id, err_code;                     // pushed by isr stub
 	uint32_t eip, cs, eflags, user_esp, user_ss;   // pushed by hardware
 	// the above line is possibly
-} __attribute__((packed));
+} __attribute__((packed)) interrupt_cpu_state_t;
 
 
-void handle_interrupt(struct interrupt_cpu_state*);
-void print_cpu_state(struct interrupt_cpu_state*);
+extern isr_handler_entry_t isr_handlers[ISR_HANDERS_SIZE];
+
+void isr_add_handler(size_t isr, isr_handler_t handler);
+void handle_interrupt(interrupt_cpu_state_t*); // FIXME: add prefixes
+void print_cpu_state(interrupt_cpu_state_t*);
 
 extern void isr0();
 extern void isr1();

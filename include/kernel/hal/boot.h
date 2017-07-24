@@ -27,6 +27,7 @@
 
 #include <stddef.h>
 #include <kernel/hal/cpu.h>
+#include <sys_common.h>
 
 
 typedef struct // TODO: Expand

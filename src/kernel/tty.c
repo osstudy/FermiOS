@@ -29,7 +29,7 @@
 #include <string.h>
 
 #include <kernel/tty.h>
-#include <arch/i386/vga.h>
+#include <arch/i386/vga.h> // FIXME: shouldn't TTY be arch independant?
 
 
 static int32_t   tty_row;

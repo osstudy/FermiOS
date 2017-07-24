@@ -26,13 +26,23 @@
 #define KERNEL_HAL_KBD_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <sys_common.h>
+#include <kernel/event.h>
 
+
+// TODO: add proper msg when malloc is in
+typedef struct
+{
+	uint8_t scancode;
+	char character;
+
+} kbd_event_msg_t;
 
 // FIXME: NUMPAD is wrong
-
-const char kbd_keymap_us[128] =
+static const char kbd_keymap_us[128] =
 {
 	0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
 	'\t',  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
@@ -52,7 +62,7 @@ const char kbd_keymap_us[128] =
 	0,
 };
 
-const char kbd_keymap_shft_us[128] =
+static const char kbd_keymap_shft_us[128] =
 {
 	0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
 	'\t',  'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',
@@ -72,6 +82,9 @@ const char kbd_keymap_shft_us[128] =
 	0,
 };
 
+extern int kbd_event_id;
+
+void kbd_init();
 void kbd_handler();
 
 #endif // KERNEL_HAL_KBD_H

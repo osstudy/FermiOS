@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include <arch/i386/cpu/isr.h>
+#include <sys_common.h>
 
 #define IDT_SIZE 256
 

@@ -25,7 +25,7 @@
 #include <arch/i386/cpu/idt.h>
 
 
-static isr_func isrs[] =
+static isr_func_t isrs[] =
 {
 	isr0,  isr1,  isr2,  isr3,  isr4,  isr5,  isr6,  isr7,  isr8,  isr9,  isr10,
 	isr11, isr12, isr13, isr14, isr15, isr16, isr17, isr18, isr19, isr20, isr21,
@@ -43,7 +43,7 @@ void idt_init()
 
 	// load ISRs into IDT
 	size_t i = 0;
-	for(; i < sizeof(isrs) / sizeof(isr_func); i++)
+	for(; i < sizeof(isrs) / sizeof(isr_func_t); i++)
 		idt_set_gate(i, (uint32_t)isrs[i], 0x08, // 0x08 = gdt[1] = CS PL0
 				idt_flags_to_attr(true, 0x0 ,false, 0xE));
 }

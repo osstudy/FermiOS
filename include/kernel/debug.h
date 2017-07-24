@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys_common.h>
 
 
 void dbg_dump_cpu_state();

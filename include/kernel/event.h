@@ -22,41 +22,33 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#ifndef KERNEL_EVENT_H
+#define KERNEL_EVENT_H
+
 #include <stddef.h>
-#include <stdint.h>
-#include <limits.h>
-
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <sys_common.h>
-#include <kernel/hal/boot.h>
-#include <kernel/hal/cpu.h>
-#include <kernel/hal/kbd.h>
-#include <kernel/tty.h>
-#include <kernel/debug.h>
 
+#define EVENTS_SIZE      1024
+#define EVENT_TYPES_SIZE 255
 
-void kbd_event_test(void* msg)
+typedef void (*event_handler_t)(void*);
+
+typedef struct
 {
-	kbd_event_msg_t m = *((kbd_event_msg_t*)msg);
+	int id;
+	event_handler_t handler;
 
-	putchar(m.character);
-}
+} event_t;
 
-void kernel_main(boot_info_t boot_info)
-{
-	tty_initialize();
-	kbd_init();
 
-	printf("\x1b[15;0m");
-	printf("FermiOS %s loaded.\n", _KERNEL_VERSION);
-	printf("Avaiable RAM: %u MB\n", boot_info.mem_size / 1000);
-	printf("CPU: %s\n", boot_info.cpu_info.info);
+int event_add_type(char* name);
+int event_get_id(char* name);
+void event_add_handler(int id, event_handler_t handler);
+// TODO: add remove() functions
+void event_trigger(int id, void* msg);
 
-	event_add_handler(kbd_event_id, kbd_event_test);
-
-	while(true)
-		cpu_halt();
-}
+#endif // KERNEL_EVENT_H
 
