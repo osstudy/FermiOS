@@ -22,13 +22,56 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
 #include <stddef.h>
 
+#if defined(__is_libk)
+	#include <kernel/hal/tty.h>
+	#include <kernel/hal/kbd.h>
+#endif
+
+
+extern char getchar_buffer;
+extern bool getchar_lock;
+int getchar()
+{
+	char c = '\0';
+
+#if defined(__is_libk)
+	while(getchar_lock)
+		asm("hlt");
+
+	getchar_lock = true;
+	c = getchar_buffer;
+#else
+	// TODO: syscall?
+#endif
+
+	return c;
+}
+
+int puts(const char* string)
+{
+	return printf("%s\n", string);
+}
+
+int putchar(int ic)
+{
+#if defined(__is_libk)
+		char c = (char)ic;
+		if(c == '\n')
+			tty_putchar('\r');
+		tty_putchar(c);
+#else
+		// TODO: Implement syscall.
+#endif
+	return ic;
+}
 
 static bool print(const char* data, size_t length)
 {
@@ -41,6 +84,49 @@ static bool print(const char* data, size_t length)
 	}
 
 	return true;
+}
+
+static void itoa(int num, char* buf, size_t buf_size, size_t base, bool sign,
+		const char* digit, int padding)
+{
+	memset(buf, '0',buf_size);
+
+	if(num < 0 && sign)
+	{
+		*buf = '-';
+		buf++;
+
+		num *= -1;
+	}
+
+	int shift = num;
+	size_t i = 0;
+
+	do
+	{
+		buf++;
+		i++;
+		shift /= base;
+
+		if(i >= buf_size)
+			abort(); // FIXME: proper errors
+	}
+	while(shift);
+
+	int x = padding - (int)i;
+	if(x < 0)
+		x = 0;
+	buf += x;
+
+	*buf = '\0';
+
+	do
+	{
+		buf--;
+		*buf = digit[num % base];
+		num /= base;
+	}
+	while(num);
 }
 
 int printf(const char* restrict format, ...)
@@ -113,6 +199,58 @@ int printf(const char* restrict format, ...)
 
 			written += len;
 		}
+		else if(*format == 'd' || *format == 'i' ||
+				*format == 'u' || *format == 'o' ||
+				*format == 'x' || *format == 'X' ||
+				*format == 'p')
+		{
+			char f = *format;
+			format++;
+			int num = va_arg(parameters, int);
+			char buf[32];
+
+			switch(f)
+			{
+				case 'd':
+				case 'i':
+					itoa(num, buf, 32, 10, true,  "0123456789"      , 0);
+					break;
+
+				case 'u':
+					itoa(num, buf, 32, 10, false, "0123456789"      , 0);
+					break;
+
+				case 'o':
+					itoa(num, buf, 32,  8, false, "01234567"        , 0);
+					break;
+
+				case 'x':
+					itoa(num, buf, 32, 16, false, "0123456789abcdef", 0);
+					break;
+
+				default:
+				case 'p':
+					itoa(num, buf, 32, 16, false, "0123456789ABCDEF", 8);
+					break;
+
+				case 'X':
+					itoa(num, buf, 32, 16, false, "0123456789ABCDEF", 2);
+					break;
+			}
+			size_t len = strlen(buf);
+
+			if (maxrem < len)
+			{
+				// TODO: Set errno to EOVERFLOW.
+				return -1;
+			}
+
+			if (!print(buf, len))
+				return -1;
+
+			written += len;
+		}
+
 		else
 		{
 			format = format_begun_at;

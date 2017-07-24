@@ -22,21 +22,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#ifndef ARCH_I386_CPU_IDT_H
+#define ARCH_I386_CPU_IDT_H
 
-#include <sys/cdefs.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
+#include <arch/i386/cpu/isr.h>
+#include <sys_common.h>
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
+#define IDT_SIZE 256
 
-#ifdef __cplusplus
-	}
-#endif
 
-#endif // LIBC_STDLIB_H
+typedef struct
+{
+	uint16_t offset_low;
+	uint16_t selector;
+	uint8_t reserved;
+	uint8_t attr;
+	uint16_t offset_high;
+
+} __attribute__((packed)) idt_entry_t;
+
+typedef struct
+{
+	uint16_t limit;
+	uint32_t base;
+
+} __attribute__((packed)) idt_ptr_t;
+
+
+idt_entry_t idt[IDT_SIZE];
+idt_ptr_t   idtp;
+
+void idt_init();
+uint8_t idt_flags_to_attr(bool present, uint8_t privilege, bool storage_seg,
+		uint8_t type);
+void idt_set_gate(uint8_t id, uint32_t offset, uint16_t selector,
+		uint8_t attr);
+
+extern void idt_set();
+
+
+#endif // ARCH_I386_CPU_IDT_H

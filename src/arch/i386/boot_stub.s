@@ -42,19 +42,39 @@ stack_bottom:
 resb 16384 ; 16 KiB
 stack_top:
 
-; Kernel entry.
+
 section .text
 global _start:function (_start.end - _start)
 _start:
+	; disable interrupts till we have GDT and IDT
+	cli
+
+; check multiboot
+	mov ecx, 0x2BADB002
+	cmp ecx, eax
+	jne .hang
+
+	; set up stack
 	mov esp, stack_top
 
 	; Call global ctor's.
 	extern _init
+	cld
 	call _init
 
+	; calculate mem from multiboot info
+	; TODO: pass whole multiboot stuct
+	xor eax, eax
+	add ebx, 0x4
+	add eax, [ebx]
+	add ebx, 0x4
+	add eax, [ebx]
+	push eax
+
 	; Transfer to main kernel.
-	extern kernel_main
-	call kernel_main
+	extern boot_i386
+	cld
+	call boot_i386
 
 	cli
 .hang:

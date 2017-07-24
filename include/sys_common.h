@@ -22,15 +22,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
-#include <stddef.h>
+#ifndef FERMIOS_SYS_COMMON_H
+#define FERMIOS_SYS_COMMON_H
 
-size_t strlen(const char* str)
-{
-	size_t len = 0;
+#define UNUSED(expr) do { (void)(expr); } while (0)
+#define CLAMP(val, min, max) (val < min) ? min : ((val > max) ? max : val)
+#define MIN(val1, val2) (val1 <= val2) ? val1 : val2
+#define MAX(val1, val2) (val1 <= val2) ? val2 : val1
 
-	while (str[len])
-		len++;
-
-	return len;
-}
+#endif // FERMIOS_SYS_COMMON_H

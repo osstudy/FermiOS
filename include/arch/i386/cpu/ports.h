@@ -22,21 +22,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#ifndef ARCH_I386_CPU_PORTS_H
+#define ARCH_I386_CPU_PORTS_H
 
-#include <sys/cdefs.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <sys_common.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
+void outb(uint16_t, uint8_t);
+void outw(uint16_t, uint16_t);
+void outl(uint16_t, uint32_t);
 
-#ifdef __cplusplus
-	}
-#endif
+uint8_t  inb(uint16_t);
+uint16_t inw(uint16_t);
+uint32_t inl(uint16_t);
 
-#endif // LIBC_STDLIB_H
+void io_wait();
+
+#endif // ARCH_I386_CPU_PORTS_H

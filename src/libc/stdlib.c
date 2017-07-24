@@ -22,21 +22,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
-#include <sys/cdefs.h>
-
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
 __attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
-
-#ifdef __cplusplus
+void abort()
+{
+#if defined(__is_libk)
+	// TODO: Add proper kernel panic.
+	printf("kernel: panic: abort()\r\n");
+	while(true)
+	{
+		asm("hlt");
 	}
+#else
+	// TODO: Abnormally terminate the process as if by SIGABRT.
+	printf("abort()\n");
 #endif
+	while (1) { }
+	__builtin_unreachable();
+}
 
-#endif // LIBC_STDLIB_H
+int atoi(const char* str)
+{
+	int num = 0;
+
+	while(*str)
+	{
+		num = num * 10 + (*str) - '0';
+		str++;
+	}
+
+	return num;
+}
+

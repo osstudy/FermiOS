@@ -22,21 +22,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#include <kernel/hal/timer.h>
+#include <arch/i386/cpu/ports.h>
+#include <arch/i386/cpu/isr.h>
 
-#include <sys/cdefs.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
+// TODO: Add configs
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
+int timer_event_id = -1;
+size_t timer_ticks = 0;
 
-#ifdef __cplusplus
-	}
-#endif
+void timer_init()
+{
+	isr_add_handler(IRQ_OFFSET + 0, timer_handler);
+	timer_event_id = event_add_type("timer");
+}
 
-#endif // LIBC_STDLIB_H
+void timer_handler()
+{
+	timer_ticks++;
+
+	event_trigger(timer_event_id, (void*)&timer_ticks);
+}

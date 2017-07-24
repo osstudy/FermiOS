@@ -22,75 +22,160 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
-
-#include <kernel/tty.h>
+#include <kernel/hal/tty.h>
 #include <arch/i386/vga.h>
+#include <arch/i386/cpu/ports.h>
 
 
-static const size_t VGA_WIDTH = 80;
-static const size_t VGA_HEIGHT = 25;
-static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
+static int tty_row;
+static int tty_column;
+static uint8_t tty_color_fg;
+static uint8_t tty_color_bg;
 
-static size_t terminal_row;
-static size_t terminal_column;
-static uint8_t terminal_color;
-static uint16_t* terminal_buffer;
+static uint16_t* tty_buffer;
+
+static const uint8_t tty_color_default_fg = VGA_COLOR_LIGHT_GREY;
+static const uint8_t tty_color_default_bg = VGA_COLOR_BLACK;
 
 
-void terminal_initialize()
+void tty_initialize()
 {
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	terminal_buffer = VGA_MEMORY;
+	tty_color_fg = tty_color_default_fg;
+	tty_color_bg = tty_color_default_bg;
+	tty_buffer   = VGA_MEMORY;
 
-	terminal_clear();
+	tty_enable_cursor(true);
+	tty_set_cursor(0, 0);
+	tty_clear();
 }
 
-void terminal_clear()
+void tty_clear()
 {
-	for (size_t y = 0; y < VGA_HEIGHT; y++)
+	for (int32_t y = 0; y < VGA_HEIGHT; y++)
 	{
-		for (size_t x = 0; x < VGA_WIDTH; x++)
+		for (int32_t x = 0; x < VGA_WIDTH; x++)
 		{
 			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
+			tty_buffer[index] = vga_entry(' ',
+					vga_entry_color(tty_color_fg, tty_color_bg));
 		}
 	}
+
+	tty_set_cursor(0, 0);
 }
 
-void terminal_setcolor(uint8_t color)
-{
-	terminal_color = color;
-}
-
-void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y)
+void tty_putentryat(unsigned char c, uint8_t color, size_t x, size_t y)
 {
 	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = vga_entry(c, color);
+	tty_buffer[index] = vga_entry(c, color);
 }
 
-void terminal_putchar(char c)
+void tty_putchar(char c)
 {
-	unsigned char uc = c;
-	terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
-
-	if (++terminal_column == VGA_WIDTH)
+	switch(c)
 	{
-		terminal_column = 0;
+		case '\r':
+		{
+			tty_column = 0;
+			break;
+		}
 
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+		case '\n':
+		{
+			tty_row++;
+			break;
+		}
+
+		case '\t':
+		{
+			tty_write("    ", 4); // FIXME: is it even my concenr?
+			break;
+		}
+
+		case '\b':
+		{
+			tty_column--;
+			break;
+		}
+
+		case '\0':
+			break;
+
+		default:
+		{
+			tty_putentryat(c, vga_entry_color(tty_color_fg, tty_color_bg),
+						tty_column, tty_row);
+			tty_column++;
+
+			break;
+		}
 	}
+
+	if(tty_column < 0)
+	{
+		tty_row--;
+		tty_column = 0;
+	}
+
+	if(tty_row < 0)
+		tty_row = 0;
+
+	if(tty_column == VGA_WIDTH)
+	{
+		tty_column = 0;
+		tty_row++;
+	}
+
+	if(tty_row == VGA_HEIGHT)
+	{
+		memcpy(tty_buffer, tty_buffer + VGA_WIDTH,
+				(VGA_HEIGHT) * VGA_WIDTH * 2);
+
+		tty_row--;
+		for(int i = 0; i < VGA_WIDTH; i++) // Painting BG with selected color
+			tty_putentryat(' ', vga_entry_color(tty_color_fg,
+						tty_color_bg), i, tty_row);
+	}
+
+	tty_set_cursor(tty_column, tty_row);
 }
 
-void terminal_write(const char* data, size_t size)
+void tty_write(const char* data, size_t size)
 {
 	for (size_t i = 0; i < size; i++)
-		terminal_putchar(data[i]);
+		tty_putchar(data[i]);
 }
 
+void tty_set_cursor_delta(int col, int row)
+{
+	tty_set_cursor(tty_column += col, tty_row += row);
+}
+
+void tty_set_cursor(size_t col, size_t row)
+{
+	// FIXME: don't hardcode the ports. get em from BIOS.
+
+	tty_column = col;
+	tty_row = row;
+
+	uint16_t pos = (row * VGA_WIDTH) + col;
+	outb(0x3D4, 0x0F);
+	outb(0x3D5, (uint8_t)(pos & 0xFF));
+	outb(0x3D4, 0x0E);
+	outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+void tty_enable_cursor(bool enable)
+{
+	outb(0x3D4, 0x0A);
+	if(enable)
+		outb(0x3D5, 0x0D);
+	else
+		outb(0x3D5, 0x3F);
+}
+
+void tty_set_color(uint8_t fg, uint8_t bg)
+{
+	tty_color_fg = fg;
+	tty_color_bg = bg;
+}

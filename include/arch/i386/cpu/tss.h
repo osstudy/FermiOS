@@ -22,21 +22,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#ifndef ARCH_I386_CPU_TSS_H
+#define ARCH_I386_CPU_TSS_H
 
-#include <sys/cdefs.h>
+typedef struct
+{
+	uint16_t link;			uint16_t link_r;
+	uint32_t esp0;
+	uint16_t ss0;			uint16_t ss0_r;
+	uint32_t esp1;
+	uint16_t ss1;			uint16_t ss1_r;
+	uint32_t esp2;
+	uint16_t ss2;			uint16_t ss2_r;
+	uint32_t cr3;
+	uint32_t eip;
+	uint32_t eflags;
+	uint32_t eax;
+	uint32_t ecx;
+	uint32_t edx;
+	uint32_t ebx;
+	uint32_t esp;
+	uint32_t ebp;
+	uint32_t esi;
+	uint32_t edi;
+	uint16_t es;			uint16_t es_r;
+	uint16_t cs;			uint16_t cs_r;
+	uint16_t ss;			uint16_t ss_r;
+	uint16_t ds;			uint16_t ds_r;
+	uint16_t fs;			uint16_t fs_r;
+	uint16_t gs;			uint16_t gs_r;
+	uint16_t ldtr;			uint16_t ldtr_r;
+	uint16_t iopb_off_r;	uint16_t iopb_off;
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
+} __attribute__((packed)) tss_t;
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
 
-#ifdef __cplusplus
-	}
-#endif
-
-#endif // LIBC_STDLIB_H
+#endif // ARCH_I386_CPU_TSS_H

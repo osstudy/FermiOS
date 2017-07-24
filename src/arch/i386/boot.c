@@ -22,21 +22,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <kernel/hal/boot.h>
+#include <kernel/hal/cpu.h>
 
 
-__attribute__((__noreturn__))
-void abort()
+extern void kernel_main();
+
+void boot_i386(size_t mem_size)
 {
-#if defined(__is_libk)
-	// TODO: Add proper kernel panic.
-	printf("kernel: panic: abort()\n");
-#else
-	// TODO: Abnormally terminate the process as if by SIGABRT.
-	printf("abort()\n");
-#endif
-	while (1) { }
-	__builtin_unreachable();
+	cpu_initialize();
+
+	boot_info_t info;
+	info.mem_size = mem_size;
+	info.cpu_info = cpu_get_info();
+
+	kernel_main(info);
 }
 

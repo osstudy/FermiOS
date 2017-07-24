@@ -21,3 +21,11 @@ sysroot/
 *.so.*
 *.out
 *.bin
+
+# GNU Global Tags
+GPATH
+GRTAGS
+GTAGS
+
+# VS Code
+.vscode/

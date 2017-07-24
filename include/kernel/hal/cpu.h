@@ -22,21 +22,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#ifndef KERNEL_HAL_CPU_H
+#define KERNEL_HAL_CPU_H
 
-#include <sys/cdefs.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <sys_common.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
+typedef struct
+{
+	char* info; // TODO: Add actual flags
 
-#ifdef __cplusplus
-	}
-#endif
+} cpu_info_t;
 
-#endif // LIBC_STDLIB_H
+void cpu_initialize();
+cpu_info_t cpu_get_info();
+void cpu_halt();
+void cpu_hcf(); // HALT AND CATCH FIRE (BUSY LOOP)
+void cpu_dump_state();
+
+#endif // KERNEL_HAL_CPU_H

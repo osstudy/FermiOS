@@ -22,15 +22,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef KERNEL_TTY_H
-#define KERNEL_TTY_H
+#ifndef KERNEL_DEBUG_H
+#define KERNEL_DEBUG_H
 
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys_common.h>
 
 
-void terminal_initialize();
-void terminal_clear();
-void terminal_putchar(char c);
-void terminal_write(const char* data, size_t size);
+void dbg_dump_cpu_state();
+void dbg_print_mem(void*, size_t);
 
-#endif // KERNEL_TTY_H
+#endif // KERNEL_DEBUG_H

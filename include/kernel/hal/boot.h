@@ -22,21 +22,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#ifndef KERNEL_HAL_BOOT_H
+#define KERNEL_HAL_BOOT_H
 
-#include <sys/cdefs.h>
+#include <stddef.h>
+#include <kernel/hal/cpu.h>
+#include <sys_common.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
+typedef struct // TODO: Expand
+{
+	size_t mem_size;
+	cpu_info_t cpu_info;
 
-#ifdef __cplusplus
-	}
-#endif
+} boot_info_t;
 
-#endif // LIBC_STDLIB_H
+#endif // KERNEL_HAL_BOOT_H

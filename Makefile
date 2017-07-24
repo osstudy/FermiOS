@@ -1,7 +1,7 @@
 TARGET       := fermios
 
 VER_MAJ      := 1
-VER_MIN      := 0
+VER_MIN      := 2
 VER_FIX      := 0
 VER_SUF      := a
 VER          := $(VER_MAJ).$(VER_MIN).$(VER_FIX)$(VER_SUF)
@@ -18,21 +18,23 @@ CROSS_DIR    := cross
 AS           := nasm
 CC           := i686-elf-gcc
 AR           := i686-elf-ar
+TAGS         := #gtags
 
 AFLAGS       := -f elf32
 CFLAGS_DEBUG := -g -D _DEBUG
-CFLAGS       := -Wall -Wextra -std=gnu11 -O2 -ffreestanding $(CFLAGS_DEBUG)
+OPTZ_FLAGS   := -O1
+CFLAGS       := -Wall -Wextra -std=gnu11 $(OPTZ_FLAGS) -ffreestanding \
+	$(CFLAGS_DEBUG) -D_KERNEL_VERSION=\"$(VER)\"
 LFLAGS       := -nostdlib -lgcc -T $(SRC_DIR)/arch/$(ARCH)/linker.ld -L$(BIN_DIR)
 INCFLAGS     := -I$(abspath $(INC_DIR)) -I$(abspath $(INC_DIR))/libc
-QFLAGS       := -enable-kvm -monitor stdio -m 2048 -smp 2
+QFLAGS       := -enable-kvm -monitor stdio -m 1024M -display gtk
 
 KRN_ASM      := $(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.s")
 KRN_SRC      := $(shell find $(SRC_DIR)/kernel -type f -name "*.c") \
-	$(SRC_DIR)/arch/$(ARCH)/tty.c
+	$(shell find $(SRC_DIR)/arch/$(ARCH) -type f -name "*.c")
+
 KRN_OBJ      := $(addprefix $(OBJ_DIR)/, $(KRN_ASM:%.s=%.o)) \
-	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))             \
-	$(OBJ_DIR)/crtbegin.o                                    \
-	$(OBJ_DIR)/crtend.o
+	$(addprefix $(OBJ_DIR)/, $(KRN_SRC:%.c=%.o))
 
 LIBK_SRC     := $(shell find $(SRC_DIR)/libc -type f -name "*.c")
 LIBK_OBJ     := $(addprefix $(OBJ_DIR)/, $(LIBK_SRC:%.c=%.libk.o))
@@ -55,19 +57,23 @@ export PATH  := $(CROSS_DIR)/bin:$(PATH)
 
 all: rebuild
 
+rbri : rebuild run-iso
+
 rbr: rebuild run
 
 rebuild: clean build
+
+bruni: build run-iso
 
 brun: build run
 
 build: $(TARGET)-$(VER)-$(ARCH).iso
 
 run:
-	qemu-system-i386 -kernel $(BIN_DIR)/$(TARGET).bin
+	qemu-system-i386 $(QFLAGS) -kernel $(BIN_DIR)/$(TARGET).bin
 
 run-iso:
-	qemu-system-i386 -cdrom $(TARGET)-$(VER)-$(ARCH).iso
+	qemu-system-i386 $(QFLAGS) -cdrom $(TARGET)-$(VER)-$(ARCH).iso
 
 $(TARGET)-$(VER)-$(ARCH).iso: $(BIN_DIR)/$(TARGET).bin
 	mkdir -p $(SYSROOT_DIR)/boot/grub
@@ -79,6 +85,7 @@ $(TARGET)-$(VER)-$(ARCH).iso: $(BIN_DIR)/$(TARGET).bin
 $(BIN_DIR)/$(TARGET).bin: $(BIN_DIR)/libk.a $(KRN_OBJ)
 	$(CC) $(LFLAGS) -o $@ $(CFLAGS) $(KRN_OBJ) -lk $(INCFLAGS)
 	grub-file --is-x86-multiboot $@
+	$(TAGS)
 
 $(OBJ_DIR)/crtbegin.o $(OBJ_DIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
@@ -102,4 +109,4 @@ clean:
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(OBJ_DIR)/*
 	rm -rf $(SYSROOT_DIR)
-	rm -f  $(TARGET)-$(VER)-$(ARCH).iso
+	rm -f  $(TARGET)-*.iso

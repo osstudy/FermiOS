@@ -22,25 +22,66 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
-#include <stddef.h>
+#include <kernel/hal/cpu.h>
+#include <arch/i386/cpu/gdt.h>
+#include <arch/i386/cpu/tss.h>
+#include <arch/i386/cpu/idt.h>
+#include <arch/i386/cpu/isr.h>
+#include <arch/i386/cpu/ports.h>
+#include <arch/i386/pic.h>
 
 
-void* memmove(void* dstptr, const void* srcptr, size_t size)
+static uint64_t gdt[6];
+static tss_t my_tss;
+
+void cpu_initialize()
 {
-	unsigned char* dst = (unsigned char*) dstptr;
-	const unsigned char* src = (const unsigned char*) srcptr;
+	// Set up GDT
+	gdt[0] = gdt_create_descriptor(0 ,0 ,0);							// NULL
+	gdt[1] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL0));		// CS K
+	gdt[2] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL0));		// DS K
+	gdt[3] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL3));		// CS U
+	gdt[4] = gdt_create_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL3));		// DS U
+	gdt[5] = gdt_create_descriptor((uint32_t)&my_tss,
+			sizeof(my_tss), 0x89);										//  TSS
 
-	if (dst < src)
-	{
-		for (size_t i = 0; i < size; i++)
-			dst[i] = src[i];
-	}
-	else
-	{
-		for (size_t i = size; i != 0; i--)
-			dst[i-1] = src[i-1];
-	}
+	gdt_set(gdt, sizeof(gdt));
+	gdt_activate();
 
-	return dstptr;
+	// Init IDT
+	idt_init();
+
+	// Init PIC
+	pic_remap_irqs(IRQ_OFFSET, IRQ_OFFSET + 8);
+	pic_load_irqs();
+
+	outb(0x21,0xfc); // Enable keyboard and PIT
+	outb(0xa1,0xff);
+
+	idt_set();
+
+	asm volatile("sti");
 }
+
+cpu_info_t cpu_get_info()
+{
+	cpu_info_t info;
+	info.info = "unknown\n";
+
+	return info;
+}
+
+void cpu_halt()
+{
+	asm volatile("hlt");
+}
+
+void cpu_hcf()
+{
+	while(true)
+	{
+		asm volatile("nop");
+	}
+}
+
+

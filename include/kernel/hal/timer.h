@@ -22,21 +22,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBC_STDLIB_H
-#define LIBC_STDLIB_H
+#ifndef KERNEL_HAL_TIMER_H
+#define KERNEL_HAL_TIMER_H
 
-#include <sys/cdefs.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <sys_common.h>
+#include <kernel/event.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
-__attribute__((__noreturn__))
-void abort();
-int atoi(const char*);
+extern int timer_event_id;
+extern size_t timer_ticks;
 
-#ifdef __cplusplus
-	}
-#endif
+// TODO: Add configuration
 
-#endif // LIBC_STDLIB_H
+void timer_init();
+void timer_handler();
+
+#endif // KERNEL_HAL_TIMER_H
+

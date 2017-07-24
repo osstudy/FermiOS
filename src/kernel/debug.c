@@ -22,23 +22,52 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <string.h>
-#include <stddef.h>
+#include <kernel/debug.h>
 
 
-int memcmp(const void* aptr, const void* bptr, size_t size)
+void dbg_print_mem(void* from, size_t size)
 {
-	const unsigned char* a = (const unsigned char*) aptr;
-	const unsigned char* b = (const unsigned char*) bptr;
+#ifndef _DEBUG
+	return;
+#endif
 
-	for (size_t i = 0; i < size; i++)
+	size_t cols = 16;
+	size_t rest = size;
+	printf("Printing mem from 0x%p to 0x%p: \r\n", from, from + size);
+
+	for(size_t i = 0; i < size; i += cols)
 	{
-		if (a[i] < b[i])
-			return -1;
-		else if (b[i] < a[i])
-			return 1;
-	}
+		printf("0x%p: ", from);
 
-	return 0;
+		for(size_t j = 0; j < cols; j++)
+		{
+			if(j % (cols / 2) == 0 && j != 0)
+				printf(" ");
+
+			if(j <= rest)
+			{
+				uint8_t d = *(uint8_t*)(from + j);
+				printf("%X ", d);
+			}
+			else
+				printf("   ");
+		}
+
+		printf("|");
+
+		for(size_t j = 0; j < (cols >= rest ? rest : cols); j++)
+		{
+			char c = *(char*)(from + j);
+			if(' ' <= c && c <= '~')
+				printf("%c", c);
+			else
+				printf(".");
+		}
+
+		printf("|\r\n");
+		from += cols;
+		rest -= cols;
+	}
 }
+
 
