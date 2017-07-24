@@ -3,7 +3,7 @@ FermiOS
 
 ## About
 
-![FermiOS Screenshot](https://i.imgur.com/f1qbR8v.png)
+![FermiOS Screenshot](https://i.imgur.com/MDcvVta.png)
 
 FermiOS is my yet another try to make an OS. This time I am also reading a book on OSes, so maybe it'll yield something. At the moment it's going to
 be a 32-bit system, but I will look into long mode later.
