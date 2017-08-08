@@ -36,12 +36,49 @@
 #include <kernel/hal/timer.h>
 #include <kernel/hal/kbd.h>
 #include <kernel/hal/tty.h>
+#include <kernel/system.h>
 #include <kernel/debug.h>
 
 
-// FIXME: I have NO idea what I am doing
 char getchar_buffer = '\0';
 bool getchar_lock = true;
+static size_t ticks = 0;
+
+
+void kbd_event_getchar(void* msg);
+void timer_event_tick(void* msg);
+void timer_event_tick2(void* msg);
+int kernel_shell_input(const char* prompt, char* buffer, const size_t size);
+void kernel_shell();
+
+void kernel_main(boot_info_t boot_info)
+{
+	tty_initialize();
+	timer_init();
+	kbd_init();
+
+	tty_set_color(0xF, 0x0); // For cursor color TODO: add set_cursor_col()
+	tty_clear();
+	tty_set_color(0xD, 0x0);
+	printf("%c FermiOS ", 0x02);
+	tty_set_color(0xF, 0x0);
+
+	printf("%s loaded.\n", _KERNEL_VERSION);
+	printf("MIT LICENSE Copyright (C) 2017 Dmytro Kalchenko\n");
+	printf("Avaiable RAM: %u MB\n", boot_info.mem_size / 1000);
+	printf("CPU: %s\n", boot_info.cpu_info.info);
+
+	event_add_handler(kbd_event_id, kbd_event_getchar);
+	event_add_handler(timer_event_id, timer_event_tick);
+	//event_add_handler(timer_event_id, timer_event_tick2);
+
+	kernel_shell();
+
+	while(true)
+		cpu_halt();
+}
+
+// FIXME: I have NO idea what I am doing with these events
 void kbd_event_getchar(void* msg)
 {
 	kbd_event_msg_t m = *((kbd_event_msg_t*)msg);
@@ -53,7 +90,6 @@ void kbd_event_getchar(void* msg)
 	}
 }
 
-static size_t ticks = 0;
 void timer_event_tick(void* msg)
 {
 	ticks = *((size_t*)msg);
@@ -77,6 +113,9 @@ int kernel_shell_input(const char* prompt, char* buffer, const size_t size)
 	{
 		if(c == '\b')
 		{
+			if(i <= 0)
+				return -1;
+
 			tty_set_cursor_delta(-1, 0);
 			putchar(' ');
 			tty_set_cursor_delta(-1, 0);
@@ -90,7 +129,7 @@ int kernel_shell_input(const char* prompt, char* buffer, const size_t size)
 		}
 
 		if(i >= size)
-			abort(); // FIXME: proper errors
+			PANIC("buffer overflow");
 	}
 
 	return i;
@@ -105,9 +144,13 @@ void kernel_shell()
 	while(true)
 	{
 		char buffer[255] = {'\0'};
-		size_t i = kernel_shell_input("kernel> ", buffer, 255);
+		int i = kernel_shell_input("kernel> ", buffer, 255);
 
-		if(i > 0)
+		if(i < 0)
+			putchar('\r');
+		else if(i == 0)
+			putchar('\n');
+		else
 		{
 			putchar('\n');
 
@@ -175,41 +218,6 @@ void kernel_shell()
 			else
 				printf("'%s' - unknown command\n", buffer);
 		}
-		else
-			putchar('\n');
 	}
-}
-
-
-void kernel_main(boot_info_t boot_info)
-{
-	tty_initialize();
-	timer_init();
-	kbd_init();
-
-	tty_set_color(0xF, 0x1); // For cursor color TODO: add set_cursor_col()
-	tty_clear();
-	tty_set_color(0xD, 0x1);
-	printf("%c FermiOS ", 0x02);
-	tty_set_color(0xF, 0x1);
-
-	printf("%s loaded.\n", _KERNEL_VERSION);
-	printf("MIT LICENSE Copyright (C) 2017 Dmytro Kalchenko\n");
-	printf("Avaiable RAM: %u MB\n", boot_info.mem_size / 1000);
-	printf("CPU: %s\n", boot_info.cpu_info.info);
-
-	event_add_handler(kbd_event_id, kbd_event_getchar);
-	event_add_handler(timer_event_id, timer_event_tick);
-	event_add_handler(timer_event_id, timer_event_tick2);
-
-	char buf[80];
-	for(int i = 0; i < 80; i++)
-		buf[i] = 0xCD;
-
-	printf("%s\n", buf);
-	kernel_shell();
-
-	while(true)
-		cpu_halt();
 }
 

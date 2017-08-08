@@ -22,38 +22,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef KERNEL_SYSTEM_H
+#define KERNEL_SYSTEM_H
+
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+#include <sys_common.h>
 
 
-__attribute__((__noreturn__))
-void abort()
-{
-#if defined(__is_libk)
-	while(true)
-	{
-		asm("hlt");
-	}
-#else
-	// TODO: Abnormally terminate the process as if by SIGABRT.
-	printf("abort()\n");
-#endif
-	while (true) { }
-	__builtin_unreachable();
-}
+#define PANIC(msg) { printf("KERNEL PANIC: '%s' from: %s %s() at line %d",\
+		msg, __FILE__, __func__, __LINE__); abort(); }
 
-int atoi(const char* str)
-{
-	int num = 0;
-
-	while(*str)
-	{
-		num = num * 10 + (*str) - '0';
-		str++;
-	}
-
-	return num;
-}
+#endif // KERNEL_SYSTEM_H
 

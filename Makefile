@@ -14,6 +14,7 @@ SRC_DIR      := src
 INC_DIR      := include
 SYSROOT_DIR  := sysroot
 CROSS_DIR    := cross
+MISC_DIR     := misc
 
 AS           := nasm
 CC           := i686-elf-gcc
@@ -53,7 +54,7 @@ export ISO_GRUB_CFG
 export PATH  := $(CROSS_DIR)/bin:$(PATH)
 
 
-.PHONY: all rbr rebuild brun build run run-iso clean
+.PHONY: all rbr rebuild brun build run run-iso clean loc
 
 all: rebuild
 
@@ -70,10 +71,10 @@ brun: build run
 build: $(TARGET)-$(VER)-$(ARCH).iso
 
 run:
-	qemu-system-i386 $(QFLAGS) -kernel $(BIN_DIR)/$(TARGET).bin
+	qemu-system-i386 $(QFLAGS) -kernel $(BIN_DIR)/$(TARGET).bin -hda disk.img
 
 run-iso:
-	qemu-system-i386 $(QFLAGS) -cdrom $(TARGET)-$(VER)-$(ARCH).iso
+	qemu-system-i386 $(QFLAGS) -cdrom $(TARGET)-$(VER)-$(ARCH).iso -hda disk.img
 
 $(TARGET)-$(VER)-$(ARCH).iso: $(BIN_DIR)/$(TARGET).bin
 	mkdir -p $(SYSROOT_DIR)/boot/grub
@@ -110,3 +111,6 @@ clean:
 	rm -rf $(OBJ_DIR)/*
 	rm -rf $(SYSROOT_DIR)
 	rm -f  $(TARGET)-*.iso
+
+loc:
+	./$(MISC_DIR)/loc.sh

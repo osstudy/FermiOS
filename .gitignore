@@ -10,6 +10,8 @@ sysroot/
 *.swp
 *.tmp
 
+disk.img
+
 # Build and Debug
 *.d
 *.o
