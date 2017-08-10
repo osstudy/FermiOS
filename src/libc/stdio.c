@@ -109,7 +109,7 @@ static void itoa(int num, char* buf, size_t buf_size, size_t base, bool sign,
 		shift /= base;
 
 		if(i >= buf_size)
-			abort(); // FIXME: proper errors
+			PANIC("buffer overflow");
 	}
 	while(shift);
 

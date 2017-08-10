@@ -78,7 +78,7 @@ void event_add_handler(int id, event_handler_t handler)
 	}
 
 	if(!added)
-		abort(); // FIXME: return error
+		PANIC("failed to add event handlefailed to add event handlerr");
 }
 
 size_t event_get_num_handlers(int id)

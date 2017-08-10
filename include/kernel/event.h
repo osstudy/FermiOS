@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <kernel/system.h>
 #include <sys_common.h>
 
 #define EVENTS_SIZE      1024

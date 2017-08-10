@@ -7,7 +7,7 @@ sysroot/
 # Other
 *.iso
 *.cfg
-*.swp
+*.sw* # Vim swap files
 *.tmp
 
 disk.img

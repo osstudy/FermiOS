@@ -81,7 +81,7 @@ void isr_add_handler(size_t isr, isr_handler_t handler)
 	}
 
 	if(!added)
-		abort(); // FIXME: error results and stuff
+		PANIC("failed to ISR handler");
 }
 
 void handle_interrupt(interrupt_cpu_state_t* state)
@@ -98,7 +98,7 @@ void handle_interrupt(interrupt_cpu_state_t* state)
 		printf("\r\n");
 		print_cpu_state(state);
 
-		abort();
+		PANIC("non-recoverable exception");
 	}
 
 	// TODO: call handlers/transform into events

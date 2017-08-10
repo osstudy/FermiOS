@@ -31,8 +31,8 @@
 #include <sys_common.h>
 
 
-#define PANIC(msg) { printf("KERNEL PANIC: '%s' from: %s %s() at line %d",\
-		msg, __FILE__, __func__, __LINE__); abort(); }
+#define PANIC(msg) { printf("KERNEL PANIC: '%s' from: %s %s at line %d",\
+		msg, __FILE__, __PRETTY_FUNCTION__, __LINE__); abort(); }
 
 #endif // KERNEL_SYSTEM_H
 

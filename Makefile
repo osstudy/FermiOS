@@ -54,7 +54,7 @@ export ISO_GRUB_CFG
 export PATH  := $(CROSS_DIR)/bin:$(PATH)
 
 
-.PHONY: all rbr rebuild brun build run run-iso clean loc
+.PHONY: all rbr rebuild brun build run run-iso clean loc todo
 
 all: rebuild
 
@@ -114,3 +114,14 @@ clean:
 
 loc:
 	./$(MISC_DIR)/loc.sh
+
+todo:
+	./$(MISC_DIR)/todo.sh
+
+
+#TODO: extract name, size, type
+create-disk:
+	qemu-img create -f raw disk.img 8G
+
+clean-disk:
+	rm -f disk.img

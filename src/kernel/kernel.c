@@ -164,6 +164,7 @@ void kernel_shell()
 				printf("clear   - clears the screen\n");
 				printf("timer   - print timer ticks since start\n");
 				printf("events  - print registered events info\n");
+				printf("panic   - test kernel panic\n");
 			}
 			else if(strcmp(buffer, "ver") == 0)
 				printf("FermiOS kenerel ver. %s\n", _KERNEL_VERSION);
@@ -214,6 +215,10 @@ void kernel_shell()
 						printf("EVENT[%d]: '%s' Subs: %d\n", i, name, subs);
 					}
 				}
+			}
+			else if(strcmp(buffer, "panic") == 0)
+			{
+				PANIC("user induced panic, everything is normal.");
 			}
 			else
 				printf("'%s' - unknown command\n", buffer);

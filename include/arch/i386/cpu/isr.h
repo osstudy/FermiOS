@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <arch/i386/pic.h>
+#include <kernel/system.h>
 #include <sys_common.h>
 
 
