@@ -71,10 +71,10 @@ brun: build run
 build: $(TARGET)-$(VER)-$(ARCH).iso
 
 run:
-	qemu-system-i386 $(QFLAGS) -kernel $(BIN_DIR)/$(TARGET).bin -hda disk.img
+	qemu-system-i386 $(QFLAGS) -kernel $(BIN_DIR)/$(TARGET).bin -drive file=disk.img,format=raw
 
 run-iso:
-	qemu-system-i386 $(QFLAGS) -cdrom $(TARGET)-$(VER)-$(ARCH).iso -hda disk.img
+	qemu-system-i386 $(QFLAGS) -cdrom $(TARGET)-$(VER)-$(ARCH).iso -drive file=disk.img,format=raw
 
 $(TARGET)-$(VER)-$(ARCH).iso: $(BIN_DIR)/$(TARGET).bin
 	mkdir -p $(SYSROOT_DIR)/boot/grub
