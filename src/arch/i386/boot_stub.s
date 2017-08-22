@@ -42,17 +42,28 @@ stack_bottom:
 resb 16384 ; 16 KiB
 stack_top:
 
-
 section .text
 global _start:function (_start.end - _start)
 _start:
 	; disable interrupts till we have GDT and IDT
 	cli
 
-; check multiboot
+	; check multiboot
 	mov ecx, 0x2BADB002
 	cmp ecx, eax
-	jne .hang
+	jne .badboot
+
+	; check cpuid
+	pushfd                               ; Save EFLAGS
+	pushfd                               ; Store EFLAGS
+	xor dword [esp], 0x00200000          ; Invert the ID bit in stored EFLAGS
+	popfd                                ; Load stored EFLAGS (with ID bit inverted)
+	pushfd                               ; Store EFLAGS again (ID bit may or may not be inverted)
+	pop eax                              ; eax = modified EFLAGS (ID bit may or may not be inverted)
+	xor eax, [esp]                       ; eax = whichever bits were changed
+	popfd                                ; Restore original EFLAGS
+	and eax, 0x00200000                  ; eax = zero if ID bit can't be changed, else non-zero
+	jz .badcpu
 
 	; set up stack
 	mov esp, stack_top
@@ -62,22 +73,74 @@ _start:
 	cld
 	call _init
 
-	; calculate mem from multiboot info
-	; TODO: pass whole multiboot stuct
-	xor eax, eax
-	add ebx, 0x4
-	add eax, [ebx]
-	add ebx, 0x4
-	add eax, [ebx]
-	push eax
+	push ebx
 
 	; Transfer to main kernel.
 	extern boot_i386
 	cld
 	call boot_i386
 
-	cli
 .hang:
+	cli
 	hlt
 	jmp .hang
+
+.badboot:
+	mov ecx, 0xB8000
+
+	.cls:
+	mov word[ecx], 0x0700 + ' '
+	add ecx, 2
+
+	mov eax, 0xB8000 + 80 * 25
+	cmp eax, ecx
+	jne .cls
+
+	mov ecx, 0xB8000
+
+	mov word[ecx], 0x0700 + 'B'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'A'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'D'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'B'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'O'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'O'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'T'
+	add ecx, 2
+
+	jmp .hang
+
+.badcpu:
+	mov ecx, 0xB8000
+
+	.clsb:
+	mov word[ecx], 0x0700 + ' '
+	add ecx, 2
+
+	mov eax, 0xB8000 + 80 * 25
+	cmp eax, ecx
+	jne .clsb
+
+	mov ecx, 0xB8000
+
+	mov word[ecx], 0x0700 + 'B'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'A'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'D'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'C'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'P'
+	add ecx, 2
+	mov word[ecx], 0x0700 + 'U'
+	add ecx, 2
+
+	jmp .hang
+
 .end:

@@ -38,19 +38,16 @@
 #include <kernel/hal/tty.h>
 #include <kernel/system.h>
 #include <kernel/debug.h>
+#include <kernel/kshell.h>
 
 
 char getchar_buffer = '\0';
 bool getchar_lock = true;
-static size_t ticks = 0;
+size_t ticks = 0;
 
 
 void kbd_event_getchar(void* msg);
 void timer_event_tick(void* msg);
-void timer_event_tick2(void* msg);
-int kernel_shell_input(const char* prompt, char* buffer, const size_t size);
-int32_t strtohex(const char* str);
-void kernel_shell();
 
 void kernel_main(boot_info_t boot_info)
 {
@@ -61,19 +58,23 @@ void kernel_main(boot_info_t boot_info)
 	tty_set_color(0xF, 0x0); // For cursor color TODO: add set_cursor_col()
 	tty_clear();
 	tty_set_color(0xD, 0x0);
-	printf("%c FermiOS ", 0x02);
-	tty_set_color(0xF, 0x0);
 
-	printf("%s loaded.\n", _KERNEL_VERSION);
-	printf("MIT LICENSE Copyright (C) 2017 Dmytro Kalchenko\n");
-	printf("Avaiable RAM: %u MB\n", boot_info.mem_size / 1000);
-	printf("CPU: %s\n", boot_info.cpu_info.info);
+	// logo lol
+	printf("d88888b d88888b d8888b. .88b  d88. d888888b  .d88b.  .d8888. \n");
+	printf("88'     88'     88  `8D 88'YbdP`88   `88'   .8P  Y8. 88'  YP \n");
+	printf("88ooo   88ooooo 88oobY' 88  88  88    88    88    88 `8bo.   \n");
+	printf("88~~~   88~~~~~ 88`8b   88  88  88    88    88    88   `Y8b. \n");
+	printf("88      88.     88 `88. 88  88  88   .88.   `8b  d8' db   8D \n");
+	printf("YP      Y88888P 88   YD YP  YP  YP Y888888P  `Y88P'  `8888Y' \n");
+	printf("\n  \t\t\t\tversion %s loaded.\n\n", _KERNEL_VERSION);
+
+	tty_set_color(0xF, 0x0);
+	printf("\n");
 
 	event_add_handler(kbd_event_id, kbd_event_getchar);
 	event_add_handler(timer_event_id, timer_event_tick);
-	//event_add_handler(timer_event_id, timer_event_tick2);
 
-	kernel_shell();
+	kernel_shell(boot_info);
 
 	while(true)
 		cpu_halt();
@@ -96,167 +97,4 @@ void timer_event_tick(void* msg)
 {
 	ticks = *((size_t*)msg);
 }
-
-void timer_event_tick2(void* msg)
-{
-	size_t ticks = *((size_t*)msg);
-
-	if((ticks % 500) == 0)
-		printf("\nANOTHER 500 TICKS PASSED!\n");
-}
-
-int kernel_shell_input(const char* prompt, char* buffer, const size_t size)
-{
-	size_t i = 0;
-	char c = '\0';
-
-	printf("%s", prompt);
-	while((c = getchar()) != '\n')
-	{
-		if(c == '\b')
-		{
-			if(i <= 0)
-				return -1;
-
-			tty_set_cursor_delta(-1, 0);
-			putchar(' ');
-			tty_set_cursor_delta(-1, 0);
-
-			buffer[--i] = '\0';
-		}
-		else
-		{
-			buffer[i++] = c;
-			putchar(buffer[i - 1]);
-		}
-
-		if(i >= size)
-			PANIC("buffer overflow");
-	}
-
-	return i;
-}
-
-void kernel_shell()
-{
-	printf("Welcome to kernel shell. It is used for debugging.\n");
-	printf("Type 'help' for the list of available commands.\n");
-	printf("\n");
-
-	while(true)
-	{
-		char buffer[255] = {'\0'};
-		int i = kernel_shell_input("kernel> ", buffer, 255);
-
-		if(i < 0)
-			putchar('\r');
-		else if(i == 0)
-			putchar('\n');
-		else
-		{
-			putchar('\n');
-
-			if(strcmp(buffer, "help") == 0)
-			{
-				printf("help    - prints this message\n");
-				printf("ver     - prints kernel version\n");
-				printf("regs    - prints register dump\n");
-				printf("dumpmem - prints memory dump\n");
-				printf("author  - prints developer's name\n");
-				printf("clear   - clears the screen\n");
-				printf("timer   - print timer ticks since start\n");
-				printf("events  - print registered events info\n");
-				printf("panic   - test kernel panic\n");
-			}
-			else if(strcmp(buffer, "ver") == 0)
-				printf("FermiOS kenerel ver. %s\n", _KERNEL_VERSION);
-			else if(strcmp(buffer, "regs") == 0)
-				cpu_dump_state();
-			else if(strcmp(buffer, "dumpmem") == 0)
-			{
-				// TODO: better yet, implement malloc() and strtok()
-
-				size_t from = 0;
-				size_t size = 0;
-
-				memset(buffer, '\0', 255);
-
-				kernel_shell_input("From (base 16): ", buffer, 255);
-				printf("\n");
-
-				from = strtohex(buffer);
-				memset(buffer, '\0', 255);
-
-				kernel_shell_input("Size (base 10): ", buffer, 255);
-				printf("\n");
-
-				size = atoi(buffer);
-
-				dbg_print_mem((void*)from, size);
-			}
-			else if(strcmp(buffer, "author") == 0)
-			{
-				printf("Made by: Dmytro Kalchenko\n");
-				printf("Under MIT LICENSE Copyright (C) 2017\n");
-				printf("Contact at: dmytro.v.kalchenko@gmail.com\n");
-			}
-			else if(strcmp(buffer, "clear") == 0)
-				tty_clear();
-			else if(strcmp(buffer, "timer") == 0)
-				printf("TICKS: %d\n", ticks);
-			else if(strcmp(buffer, "events") == 0)
-			{
-				printf("Registered events: \n");
-				for(int i = 0; i < EVENT_TYPES_SIZE; i++)
-				{
-					char* name;
-					if((name = event_get_name(i)) != NULL)
-					{
-						int subs = event_get_num_handlers(i);
-						printf("EVENT[%d]: '%s' Subs: %d\n", i, name, subs);
-					}
-				}
-			}
-			else if(strcmp(buffer, "panic") == 0)
-			{
-				PANIC("user induced panic, everything is normal.");
-			}
-			else
-				printf("'%s' - unknown command\n", buffer);
-		}
-	}
-}
-
-// TODO: add strtol() to stdlib instead of this
-int32_t strtohex(const char* str)
-{
-	int32_t num = 0;
-
-	if((*str) == '0')
-	{
-		str++;
-
-		if((*str) == 'x' || (*str) == 'X')
-			str++;
-	}
-
-	while(*str)
-	{
-		int32_t n = 0;
-		if(*str >= '0' && *str <= '9')
-			n = (*str) - '0';
-		else if(*str >= 'A' && *str  <= 'F')
-			n = (*str) - 'A' + 10;
-		else if(*str >= 'a' && *str <= 'f')
-			n = (*str) - 'a' + 10;
-		else
-			PANIC("couldn't parse the hex string");
-
-		num = num * 16 + n;
-		str++;
-	}
-
-	return num;
-}
-
 

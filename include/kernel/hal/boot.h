@@ -25,14 +25,28 @@
 #ifndef KERNEL_HAL_BOOT_H
 #define KERNEL_HAL_BOOT_H
 
+#include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <kernel/hal/cpu.h>
 #include <sys_common.h>
 
 
+#define RAM_CHUNKS_SIZE 256
+
+typedef struct
+{
+	uint64_t base;
+	uint64_t size;
+	bool available;
+
+} ram_chunk_t;
+
 typedef struct // TODO: Expand
 {
 	size_t mem_size;
+	size_t ram_chunks;
+	ram_chunk_t ram_map[RAM_CHUNKS_SIZE];
 	cpu_info_t cpu_info;
 
 } boot_info_t;

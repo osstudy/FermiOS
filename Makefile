@@ -1,9 +1,9 @@
 TARGET       := fermios
 
 VER_MAJ      := 1
-VER_MIN      := 2
+VER_MIN      := 3
 VER_FIX      := 0
-VER_SUF      := a
+VER_SUF      := a_DEV
 VER          := $(VER_MAJ).$(VER_MIN).$(VER_FIX)$(VER_SUF)
 
 ARCH         := i386
