@@ -57,3 +57,8 @@ int atoi(const char* str)
 	return num;
 }
 
+/*long int strtol(const char* str, char** endptr, int base)
+{
+	
+}
+*/

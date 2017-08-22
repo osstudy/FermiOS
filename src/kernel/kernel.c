@@ -49,6 +49,7 @@ void kbd_event_getchar(void* msg);
 void timer_event_tick(void* msg);
 void timer_event_tick2(void* msg);
 int kernel_shell_input(const char* prompt, char* buffer, const size_t size);
+int32_t strtohex(const char* str);
 void kernel_shell();
 
 void kernel_main(boot_info_t boot_info)
@@ -78,6 +79,7 @@ void kernel_main(boot_info_t boot_info)
 		cpu_halt();
 }
 
+// FIXME: return only alphanum
 // FIXME: I have NO idea what I am doing with these events
 void kbd_event_getchar(void* msg)
 {
@@ -179,11 +181,10 @@ void kernel_shell()
 
 				memset(buffer, '\0', 255);
 
-				// TODO: base 16
-				kernel_shell_input("From (base 10): ", buffer, 255);
+				kernel_shell_input("From (base 16): ", buffer, 255);
 				printf("\n");
 
-				from = atoi(buffer);
+				from = strtohex(buffer);
 				memset(buffer, '\0', 255);
 
 				kernel_shell_input("Size (base 10): ", buffer, 255);
@@ -225,4 +226,37 @@ void kernel_shell()
 		}
 	}
 }
+
+// TODO: add strtol() to stdlib instead of this
+int32_t strtohex(const char* str)
+{
+	int32_t num = 0;
+
+	if((*str) == '0')
+	{
+		str++;
+
+		if((*str) == 'x' || (*str) == 'X')
+			str++;
+	}
+
+	while(*str)
+	{
+		int32_t n = 0;
+		if(*str >= '0' && *str <= '9')
+			n = (*str) - '0';
+		else if(*str >= 'A' && *str  <= 'F')
+			n = (*str) - 'A' + 10;
+		else if(*str >= 'a' && *str <= 'f')
+			n = (*str) - 'a' + 10;
+		else
+			PANIC("couldn't parse the hex string");
+
+		num = num * 16 + n;
+		str++;
+	}
+
+	return num;
+}
+
 
